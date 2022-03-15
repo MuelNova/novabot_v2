@@ -28,6 +28,7 @@ modify_xisu_checkin_time = on_command("modify_xisu_checkin_time", aliases={"修�
 
 help = on_command("help_checkin", aliases={"疫情打卡帮助"}, priority=5)
 
+
 @help.handle()
 async def _():
     await help.finish("""
