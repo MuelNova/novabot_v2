@@ -13,6 +13,12 @@ from .exception import NoLoginException
 from .parser import report_parser, xisu_report_parser
 
 plugin_config = Config.parse_obj(get_driver().config)
+
+if not Path.exists(plugin_config.data_path):
+    Path.mkdir(plugin_config.data_path, parents=True)
+if not Path.exists(plugin_config.secret_path):
+    Path.mkdir(plugin_config.secret_path, parents=True)
+
 salt = initialize(plugin_config.salt_path)
 API_TIMEOUT = plugin_config.api_timeout
 
