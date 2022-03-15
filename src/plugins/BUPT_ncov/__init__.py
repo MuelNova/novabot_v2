@@ -13,11 +13,6 @@ driver = get_driver()
 plugin_config = Config.parse_obj(get_driver().config)
 scheduler: AsyncIOScheduler = require("nonebot_plugin_apscheduler").scheduler
 
-if not Path.exists(plugin_config.data_path):
-    Path.mkdir(plugin_config.data_path, parents=True)
-if not Path.exists(plugin_config.secret_path):
-    Path.mkdir(plugin_config.secret_path, parents=True)
-
 users = []
 checkin_times = set()
 xisu_checkin_times = set()
