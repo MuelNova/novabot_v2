@@ -64,6 +64,7 @@ async def _(event: PrivateMessageEvent, username: str = ArgPlainText("username")
     try:
         user = BUPTUser(event.user_id)
         user.get_or_create(username, password, force=True)
+
         msg = f"""Add Success!
         Username: {user.db.username}
         Checkin: 「{'Ⅹ' if user.db.is_stopped else '○'}」{user.db.checkin_time}
@@ -73,11 +74,11 @@ async def _(event: PrivateMessageEvent, username: str = ArgPlainText("username")
             checkin_times.add(user.db.checkin_time)
         for each in user.db.xisu_checkin_time.split('|'):
             if each not in xisu_checkin_times:
-                xisu_checkin_times.update(each)
+                xisu_checkin_times.add(each)
         gen_new_scheduler()
         await add_new_user.finish(msg)
-    except Exception as e:
-        await add_new_user.finish(str(e))
+    except ConnectionError as e:
+        await add_new_user.finish("[BUPT ncov Bot]" + str(e))
 
 
 @checkin.handle()
@@ -185,7 +186,6 @@ async def _(bot: Bot, event: PrivateMessageEvent, time: str = ArgPlainText()):
             return False
         user.db.checkin_time = time.split("|")[0]
         user.save()
-        print(checkin_times, time.split("|")[0], time.split("|")[0] not in checkin_times)
         if time.split("|")[0] not in checkin_times:
             checkin_times.add(time.split("|")[0])
             gen_new_scheduler()

@@ -61,6 +61,8 @@ class DBUser:
         else:
             self.checkin_time = '08:00'
             self.xisu_checkin_time = '08:01|12:01|18:01'
+            self._cookie_eaisess = ''
+            self._cookie_uukey = ''
             self.is_stopped = False
             self.is_xisu_stopped = False
 
@@ -116,7 +118,6 @@ class BUPTUser(SqliteDict):
         self.qq = qq
         self.is_login = False
         self.session = Session()
-
 
     def get_or_create(self,
                       username: str = None,
