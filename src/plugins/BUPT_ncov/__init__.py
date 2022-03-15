@@ -288,7 +288,7 @@ def gen_new_scheduler():
                           "cron",
                           hour=each.split(':')[0],
                           minute=each.split(':')[1],
-                          second=0,
+                          second=1,
                           id="xisu" + each,
                           args=[each, 1])
     logger.info(scheduler.get_jobs())
