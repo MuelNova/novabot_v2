@@ -229,13 +229,13 @@ async def scheduler_checkin(time: str, type_: int = 0):
     # Delete useless schedulers
     if not type_:
         if time not in [BUPTUser(i).get_or_create().db.checkin_time for i in users]:
-            scheduler.remove_job(time)
+            scheduler.remove_job("checkin" + time)
             checkin_times.remove(time)
             logger.info(scheduler.get_jobs())
             return
     else:
         if time not in [BUPTUser(i).get_or_create().db.xisu_checkin_time for i in users]:
-            scheduler.remove_job("xisu" + time)
+            scheduler.remove_job("xisu_checkin" + time)
             xisu_checkin_times.remove(time)
             logger.info(scheduler.get_jobs())
             return
@@ -273,15 +273,13 @@ async def _():
 
 
 def gen_new_scheduler():
-    for each in scheduler.get_jobs():
-        scheduler.remove_job(each.id)
     for each in checkin_times:
         scheduler.add_job(scheduler_checkin,
                           "cron",
                           hour=each.split(':')[0],
                           minute=each.split(':')[1],
                           second=0,
-                          id=each,
+                          id="checkin" + each,
                           args=[each, 0])
     for each in xisu_checkin_times:
         scheduler.add_job(scheduler_checkin,
@@ -289,6 +287,6 @@ def gen_new_scheduler():
                           hour=each.split(':')[0],
                           minute=each.split(':')[1],
                           second=1,
-                          id="xisu" + each,
+                          id="xisu_checkin" + each,
                           args=[each, 1])
     logger.info(scheduler.get_jobs())
