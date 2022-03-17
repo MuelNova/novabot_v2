@@ -34,10 +34,8 @@ class DBUser:
     _cookie_uukey: str
     _secret: bytes
     _iv: bytes
-    last_checkin_time: float
     checkin_time: str
     xisu_checkin_time: str
-    last_xisu_checkin_time: float
     is_stopped: bool
     is_xisu_stopped: bool
 
@@ -51,8 +49,6 @@ class DBUser:
                 self._cookie_eaisess = i.get('cookie_eaisess')
                 self._cookie_uukey = i.get('cookie_uukey')
                 self._secret, self._iv = get_passwd_secret_iv(self.path, self.qq)
-                self.last_checkin_time = i.get('last_checkin_time')
-                self.last_xisu_checkin_time = i.get('last_xisu_checkin_time')
                 self.checkin_time = i.get('checkin_time', '08:00')
                 self.xisu_checkin_time = i.get('xisu_checkin_time', '08:01|12:01|18:01')
                 self.is_stopped = i.get('is_stopped', False)
@@ -93,8 +89,6 @@ class DBUser:
                 "password": self._password,
                 "cookie_eaisess": self._cookie_eaisess,
                 "cookie_uukey": self._cookie_uukey,
-                "last_checkin_time": self.last_checkin_time,
-                "last_xisu_checkin_time": self.last_xisu_checkin_time,
                 "checkin_time": self.checkin_time,
                 "xisu_checkin_time": self.xisu_checkin_time,
                 "is_stopped": self.is_stopped,
@@ -178,8 +172,6 @@ class BUPTUser(SqliteDict):
             raise ConnectionError(f"Failed to Checkin\nError Code: {report_page_resp.status_code}")
         if (resp := final_resp.json()).get('e'):
             raise ConnectionError(f"Failed to Checkin!\nError Message: {resp.get('m')}")
-        self.db.last_checkin_time = time.time()
-        self.save()
         return resp.get('m')
 
     def xisu_ncov_checkin(self) -> str:
@@ -203,6 +195,4 @@ class BUPTUser(SqliteDict):
             raise ConnectionError(f"Failed to Xisu Checkin\nError Code: {report_page_resp.status_code}")
         if (resp := final_resp.json()).get('e'):
             raise ConnectionError(f"Failed to Xisu Checkin!\nError Message: {resp.get('m')}")
-        self.db.last_checkin_time = time.time()
-        self.save()
         return resp.get('m')

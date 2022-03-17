@@ -1,5 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from nonebot import get_driver, get_bot, on_command, require
+
 from nonebot.typing import T_State
 from nonebot.log import logger
 from nonebot.params import CommandArg, ArgPlainText
@@ -157,7 +159,8 @@ async def _(event: PrivateMessageEvent, state: T_State, command: Message = Comma
         state['time'] = command
 
 
-@modify_xisu_checkin_time.got('time', prompt='When would you like to checkin? e.g `07:10|12:10|19:10` or `23:33|23:33|23:33`')
+@modify_xisu_checkin_time.got('time',
+                              prompt='When would you like to checkin? e.g `07:10|12:10|19:10` or `23:33|23:33|23:33`')
 @modify_checkin_time.got('time', prompt='When would you like to checkin? e.g `07:10` or `23:33`')
 async def _(bot: Bot, event: PrivateMessageEvent, time: str = ArgPlainText()):
     time = time.replace("：", ":")
@@ -167,22 +170,22 @@ async def _(bot: Bot, event: PrivateMessageEvent, time: str = ArgPlainText()):
         await bot.send(event, "[BUPT ncov Bot]" + str(e))
         return False
     if len(time.split("|")) == 3:
-        flag = 0
+        old_times = xisu_checkin_times
         for each in time.split("|"):
-            if each not in xisu_checkin_times:
-                xisu_checkin_times.add(each)
-                flag = 1
             if not check_time_available(each):
-                await bot.send(event, "[BUPT ncov Bot]" + "Your Time Arg %s is not available!\ne.g `07:10` or `23:33`" % each)
+                await bot.send(event,
+                               "[BUPT ncov Bot]" + "Your Time Arg %s is not available!\ne.g `07:10` or `23:33`" % each)
                 return False
+            xisu_checkin_times.add(each)
         user.db.xisu_checkin_time = time
         user.save()
-        if flag:
+        if old_times is xisu_checkin_times:
             gen_new_scheduler()
     else:
         if not check_time_available(time.split("|")[0]):
             await bot.send(event,
-                           "[BUPT ncov Bot]" + "Your Time Arg %s is not available!\ne.g `07:10` or `23:33`" % time.split("|")[0])
+                           "[BUPT ncov Bot]" + "Your Time Arg %s is not available!\ne.g `07:10` or `23:33`" %
+                           time.split("|")[0])
             return False
         user.db.checkin_time = time.split("|")[0]
         user.save()
@@ -210,7 +213,8 @@ async def check(bot: Bot, user: BUPTUser, type_: int = 0) -> bool:
     if not user.is_login:
         await bot.call_api("send_msg",
                            user_id=int(user.qq),
-                           message=MessageSegment.text("[BUPT ncov Bot]Your bot is not login!\nplease reset the username and password"))
+                           message=MessageSegment.text(
+                               "[BUPT ncov Bot]Your bot is not login!\nplease reset the username and password"))
         return False
     try:
         if type_:
@@ -234,20 +238,23 @@ async def scheduler_checkin(time: str, type_: int = 0):
             logger.info(scheduler.get_jobs())
             return
     else:
-        if time not in [BUPTUser(i).get_or_create().db.xisu_checkin_time for i in users]:
+        if time not in "|".join(BUPTUser(i).get_or_create().db.xisu_checkin_time for i in users):
             scheduler.remove_job("xisu_checkin" + time)
             xisu_checkin_times.remove(time)
             logger.info(scheduler.get_jobs())
             return
 
-    for i in users:
-        user = BUPTUser(i).get_or_create()
-        if not type_:
+    if not type_:
+        for i in users:
+            user = BUPTUser(i).get_or_create()
+
             if not user.db.is_stopped and time in user.db.checkin_time:
                 logger.info(f"Signing {i}")
                 await check(get_bot(), user, type_)
 
-        else:
+    else:
+        for i in users:
+            user = BUPTUser(i).get_or_create()
             if not user.db.is_xisu_stopped and time in user.db.xisu_checkin_time:
                 logger.info(f"Signing {i}")
                 await check(get_bot(), user, type_)
@@ -265,7 +272,8 @@ async def _():
         if not new_user.get_or_create() and not (new_user.db.is_stopped or new_user.db.is_xisu_stopped):
             await bot.call_api("send_msg",
                                user_id=int(i),
-                               message=MessageSegment.text("[BUPT ncov Bot]Your bot is not login!\nplease reset the username and password"))
+                               message=MessageSegment.text(
+                                   "[BUPT ncov Bot]Your bot is not login!\nplease reset the username and password"))
         else:
             checkin_times.add(new_user.db.checkin_time)
             xisu_checkin_times.update(new_user.db.xisu_checkin_time.split('|'))
@@ -274,19 +282,21 @@ async def _():
 
 def gen_new_scheduler():
     for each in checkin_times:
-        scheduler.add_job(scheduler_checkin,
-                          "cron",
-                          hour=each.split(':')[0],
-                          minute=each.split(':')[1],
-                          second=0,
-                          id="checkin" + each,
-                          args=[each, 0])
+        if ("checkin" + each) not in [i.id for i in scheduler.get_jobs()]:
+            scheduler.add_job(scheduler_checkin,
+                              "cron",
+                              hour=each.split(':')[0],
+                              minute=each.split(':')[1],
+                              second=0,
+                              id="checkin" + each,
+                              args=[each, 0])
     for each in xisu_checkin_times:
-        scheduler.add_job(scheduler_checkin,
-                          "cron",
-                          hour=each.split(':')[0],
-                          minute=each.split(':')[1],
-                          second=1,
-                          id="xisu_checkin" + each,
-                          args=[each, 1])
+        if ("xisu_checkin" + each) not in [i.id for i in scheduler.get_jobs()]:
+            scheduler.add_job(scheduler_checkin,
+                              "cron",
+                              hour=each.split(':')[0],
+                              minute=each.split(':')[1],
+                              second=1,
+                              id="xisu_checkin" + each,
+                              args=[each, 1])
     logger.info(scheduler.get_jobs())
