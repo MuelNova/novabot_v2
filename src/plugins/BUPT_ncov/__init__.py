@@ -15,7 +15,7 @@ driver = get_driver()
 plugin_config = Config.parse_obj(get_driver().config)
 scheduler: AsyncIOScheduler = require("nonebot_plugin_apscheduler").scheduler
 
-users = []
+users = set()
 checkin_times = set()
 xisu_checkin_times = set()
 
@@ -61,8 +61,7 @@ async def _():
 
 @add_new_user.got("password", prompt="What's your password?")
 async def _(event: PrivateMessageEvent, username: str = ArgPlainText("username"), password: str = ArgPlainText()):
-    if event.user_id not in users:
-        users.append(event.user_id)
+    users.add(event.user_id)
     try:
         user = BUPTUser(event.user_id)
         user.get_or_create(username, password, force=True)
@@ -267,7 +266,7 @@ async def _():
     user = BUPTUser(0)
 
     for i in user.keys():
-        users.append(i)
+        users.add(i)
         new_user = BUPTUser(i)
         if not new_user.get_or_create() and not (new_user.db.is_stopped or new_user.db.is_xisu_stopped):
             await bot.call_api("send_msg",
