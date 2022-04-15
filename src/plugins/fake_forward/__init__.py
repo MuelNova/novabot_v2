@@ -1,6 +1,6 @@
 import re
 
-from typing import List, Dict
+from typing import List, Dict, Union
 
 from nonebot import on_command
 # from nonebot.log import logger
@@ -23,8 +23,10 @@ Permission: SUPERUSER
 
 def get_json(uin: int,
              name: str,
-             msgs: List[Message]) -> List[Dict]:
-    return [{"type": "node", "data": {"name": name, "uin": uin, "content": msg}} for msg in msgs]
+             msgs: Union[List[MessageSegment], MessageSegment]) -> Dict:
+    if isinstance(msgs, List):
+        return {"type": "node", "data": {"name": name, "uin": uin, "content": [msg for msg in msgs]}}
+    return {"type": "node", "data": {"name": name, "uin": uin, "content": msgs}}
 
 
 @fake_forward.handle()
@@ -40,9 +42,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             if len((msgs := i.split('-m '))) == 1:
                 continue
             msgs = [k.strip() for k in msgs]
+            print(msgs)
             uin = int(users[0])
             users.pop(0)
-            msg_list = []
             nickname = msgs[0].split('-n')
             if len(nickname) > 1:
                 name = nickname[1]
@@ -54,11 +56,21 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                     user_info = await bot.call_api('get_stranger_info', user_id=uin)
                     name = user_info.get('nickname')
             for msg in msgs[1:]:
-                if msg == other_type_text:
-                    if other_type_msg:
-                        msg_list.append(other_type_msg[0])
-                        other_type_msg.pop(0)
+                if other_type_text in msg:
+                    if msg == other_type_text:
+                        if other_type_msg:
+                            msg_list = [other_type_msg[0]]
+                            other_type_msg.pop(0)
+                        else:
+                            continue
+                    else:
+                        if other_type_msg:
+                            other_msg = other_type_msg[0]
+                            other_type_msg.pop(0)
+                        else:
+                            other_msg = MessageSegment.text('')
+                        msg_list = [MessageSegment.text(msg.replace(other_type_text, '')), other_msg]
+                    msgs_node.append(get_json(uin, name, msg_list))
                 else:
-                    msg_list.append(MessageSegment.text(msg))
-            msgs_node.extend(get_json(uin, name, msg_list))
+                    msgs_node.append(get_json(uin, name, MessageSegment.text(msg)))
         await bot.call_api('send_group_forward_msg', group_id=event.group_id, messages=msgs_node)
