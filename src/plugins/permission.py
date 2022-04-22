@@ -3,7 +3,7 @@ from nonebot.internal.permission import Permission as Permission
 
 
 class BotOwner:
-    """检查当前事件是否是消息事件且属于超级管理员"""
+    """检查当前事件是否是消息事件且BOT属于群主"""
 
     __slots__ = ()
 
@@ -17,7 +17,7 @@ class BotOwner:
 
 
 class BotAdmin(BotOwner):
-    """检查当前事件是否是消息事件且属于超级管理员"""
+    """检查当前事件是否是消息事件且BOT属于管理员"""
 
     __slots__ = ()
 
