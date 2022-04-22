@@ -1,5 +1,5 @@
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
-from nonebot.internal.permission import Permission as Permission
+from nonebot.rule import Rule
 
 
 class BotOwner:
@@ -30,10 +30,12 @@ class BotAdmin(BotOwner):
         return await super(BotAdmin, self).__call__(bot, event)
 
 
-BOT_OWNER: Permission = Permission(BotOwner())
-BOT_ADMIN: Permission = Permission(BotAdmin())
+BOT_OWNER: Rule = Rule(BotOwner())
+BOT_ADMIN: Rule = Rule(BotAdmin())
 
 __autodoc__ = {
     "Permission": True,
     "Permission.__call__": True,
+    "Rule": True,
+    "Rule.__call": True
 }
