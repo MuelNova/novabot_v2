@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
+from nonebot.params import CommandArg, Arg
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 
@@ -31,6 +32,8 @@ change_group_name_prefix = on_command('.gname_prefix', rule=BOT_ADMIN, permissio
 change_group_name_suffix = on_command('.gname_suffix', rule=BOT_ADMIN, permission=SUPERUSER)
 change_group_name_conn = on_command('.gname_conn', rule=BOT_ADMIN, permission=SUPERUSER)
 group_name_info = on_command('.gname_info', rule=BOT_ADMIN)
+
+change_group_avatar = on_command('.gavatar', rule=BOT_ADMIN)
 
 
 group_name_data = {}
@@ -132,3 +135,19 @@ async def _(event: GroupMessageEvent):
                                  + "\n".join(f"{k}: {v}"
                                              for k, v in group_name_data.get(str(event.group_id),
                                                                              group_name_default_dict).items()))
+
+
+@change_group_avatar.handle()
+async def _(state: T_State,
+            gavatar: Message = CommandArg()):
+    if gavatar:
+        state['gavatar'] = gavatar
+
+@change_group_avatar.got('gavatar', prompt='Which Avatar?')
+async def _(bot: Bot, event: GroupMessageEvent, gavatar: Message = Arg('gavatar')):
+    if gavatar[0].type == 'image':
+        url = gavatar[0].data['url']
+        await bot.call_api("set_group_portrait", group_id=event.group_id, file=url)
+        await change_group_avatar.finish("Changing...It could be failed if the token expired.")
+    else:
+        await change_group_avatar.finish("It's not a image!")
