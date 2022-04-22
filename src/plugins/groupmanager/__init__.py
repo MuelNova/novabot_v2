@@ -1,5 +1,7 @@
 import random
 
+from typing import List
+
 from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 from nonebot.typing import T_State
@@ -25,12 +27,11 @@ change_card = on_command('.card', aliases={"修改群头衔", "修改头衔"}, p
 @change_card.handle()
 async def _(bot: Bot, state: T_State, event: GroupMessageEvent):
     if arg := state['_prefix'].get('command_arg'):
-        arg[0]: MessageSegment
-        msg = arg[0] if arg[0].type == 'text' else ''
+        arg: List[MessageSegment]
+        msg = str(arg[0]) if arg[0].type == 'text' else ''
     else:
         msg = ''
-    if random.randint(1, 100) > 90:
-        msg = '小猪🐖'
+
     await bot.call_api('set_group_special_title',
                        group_id=event.group_id,
                        user_id=event.user_id,
