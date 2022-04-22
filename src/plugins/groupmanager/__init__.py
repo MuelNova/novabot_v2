@@ -68,13 +68,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = await get_command_arg_text(state)
     grp_info = group_name_data.get(str(event.group_id), group_name_default_dict)
     try:
-        group_name = grp_info['prefix'] + grp_info['basename'] + grp_info['conn'] + msg + grp_info['suffix']
+        if not grp_info['basename']:
+            group_name = grp_info['prefix'] + msg + grp_info['suffix']
+        else:
+            group_name = grp_info['prefix'] + grp_info['basename'] + grp_info['conn'] + msg + grp_info['suffix']
     except KeyError:
-        group_name_data = update_inner_dict(group_name_data,
-                                            str(event.group_id),
-                                            default_dict=group_name_default_dict)
-        save(group_name_data)
-        group_name = grp_info['prefix'] + grp_info['basename'] + grp_info['conn'] + msg + grp_info['suffix']
+        group_name = msg
     await bot.call_api("set_group_name", group_id=event.group_id, group_name=group_name)
     await change_group_name.finish(f"已修改群名为： {group_name}")
 
