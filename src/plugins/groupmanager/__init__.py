@@ -143,6 +143,7 @@ async def _(state: T_State,
     if gavatar:
         state['gavatar'] = gavatar
 
+
 @change_group_avatar.got('gavatar', prompt='Which Avatar?')
 async def _(bot: Bot, event: GroupMessageEvent, gavatar: Message = Arg('gavatar')):
     if gavatar[0].type == 'image':

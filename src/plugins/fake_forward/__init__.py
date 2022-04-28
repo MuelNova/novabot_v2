@@ -52,6 +52,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 try:
                     user_info = await bot.call_api('get_group_member_info', group_id=event.group_id, user_id=uin)
                     name = user_info.get('card', user_info.get('name'))
+                    if not name:
+                        raise ActionFailed
                 except ActionFailed:
                     user_info = await bot.call_api('get_stranger_info', user_id=uin)
                     name = user_info.get('nickname')
