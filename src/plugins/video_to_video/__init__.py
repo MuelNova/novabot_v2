@@ -1,28 +1,31 @@
 from aiohttp import ClientSession, TCPConnector
+from pathlib import Path
 from typing import Union, Dict, List
 from time import time
 
 from nonebot import on_command, get_driver
+from nonebot.exception import ActionFailed
 from nonebot.log import logger
+from nonebot.params import CommandArg
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Bot, MessageSegment
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Bot, MessageSegment, Message
 
 from .config import Config
+from .video_par import compress
 
 driver = get_driver()
 global_config = driver.config
 config = Config.parse_obj(global_config)
 
 send_video = on_command('.send_video')
+compress_video = on_command('.compress_video')
 rm_video = on_command('.remove_video')
 
 supported_file_suffix = ['mp4', 'flv', 'wmv', 'avi']
 
 
 @send_video.handle()
-async def _(state: T_State, event: GroupMessageEvent, bot: Bot):
-    logger.info(state)
-    logger.info(event.dict())
+async def _(state: T_State, event: GroupMessageEvent, bot: Bot, arc: Message = CommandArg()):
     files: Dict[str, List] = await bot.call_api('get_group_root_files', group_id=event.group_id)
     files: List[Dict[str, Union[str, int]]] = files.get('files')
     r_file = None
@@ -37,11 +40,12 @@ async def _(state: T_State, event: GroupMessageEvent, bot: Bot):
         assert r_file
     except AssertionError:
         await send_video.finish('No Supported Video File Found!')
+    if r_file.get('file_size') > 300 * 1024 * 1024:
+        await send_video.finish('Video is too big! Maximum 300Mb supported')
     url: Dict[str, str] = await bot.call_api('get_group_file_url',
                                              group_id=event.group_id,
                                              file_id=r_file.get('file_id'),
                                              busid=r_file.get('busid'))
-    print(url)
     if not (f_url := url.get('url')):
         await send_video.finish('Error occurred while getting the video file url')
     await bot.send(event, 'Downloading...')
@@ -66,7 +70,39 @@ async def _(state: T_State, event: GroupMessageEvent, bot: Bot):
     except Exception as e:
         await send_video.finish(f'Error occurred while downloading the video file url\n{e}')
     await bot.send(event, 'Video downloaded! Trying to send now...')
-    await send_video.finish(MessageSegment.video(file=config.data_path / f'temp.{suffix}'))
+    try:
+        if arc:
+            await compress(path=config.data_path / f'temp.{suffix}')
+            await send_video.finish(MessageSegment.video(file=config.data_path / f'temp.{suffix}_compressed.mp4'))
+        else:
+            await send_video.finish(MessageSegment.video(file=config.data_path / f'temp.{suffix}'))
+    except ActionFailed:
+        await send_video.finish("Error While Sending the video, the file could be too large to send\n"
+                                "You can try compress it")
+
+
+@compress_video.handle()
+async def _(event: GroupMessageEvent, bot: Bot, arc: Message = CommandArg()):
+    files = config.data_path.iterdir()
+    file = None
+    for f in files:
+        if f.name.replace(f.suffix, '') == 'temp':
+            file = f
+            break
+    if not file:
+        await compress_video.finish("No video found!")
+    await bot.send(event, 'Compressing...')
+    try:
+        if arc:
+            await compress(path=file, arg=str(arc))
+        else:
+            await compress(path=file)
+        await bot.send(event, 'Compressed, now trying to send...')
+        print(str(file) + '_compressed.mp4')
+        await compress_video.finish(MessageSegment.video(file=Path(str(file) + '_compressed.mp4')))
+    except ActionFailed:
+        await compress_video.finish("Error While Sending the video, the file could be too large to send\n"
+                                    "You can try compress it")
 
 
 @rm_video.handle()
