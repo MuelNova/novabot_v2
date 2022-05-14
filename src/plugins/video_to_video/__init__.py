@@ -1,5 +1,6 @@
 from aiohttp import ClientSession, TCPConnector
 from typing import Union, Dict, List
+from time import time
 
 from nonebot import on_command, get_driver
 from nonebot.log import logger
@@ -47,13 +48,16 @@ async def _(state: T_State, event: GroupMessageEvent, bot: Bot):
     try:
         connector = TCPConnector(force_close=True, limit=50)
         async with ClientSession(connector=connector) as session:
-            async with session.get(f_url) as r:
+            async with session.get(f_url, timeout=None) as r:
                 if r.status != 200:
                     raise ConnectionError(r.status)
                 if not config.data_path.exists():
                     config.data_path.mkdir(parents=True)
+                total_size = 0
+                start = time()
                 with open(config.data_path / f'temp.{suffix}', 'wb') as fd:
-                    async for chunk in r.content.iter_chunked(1024):
+                    async for chunk in r.content.iter_chunked(16144):
+                        logger.info(f'{time() - start:0.2f}s, downloaded: {total_size / (1024 * 1024):0.0f}MB')
                         fd.write(chunk)
     except Exception as e:
         await send_video.finish(f'Error occurred while downloading the video file url\n{e}')
