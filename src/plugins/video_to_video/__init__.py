@@ -54,11 +54,14 @@ async def _(state: T_State, event: GroupMessageEvent, bot: Bot):
                 if not config.data_path.exists():
                     config.data_path.mkdir(parents=True)
                 total_size = 0
+                now_downloaded = total_size // (1024 * 1024)
                 start = time()
                 with open(config.data_path / f'temp.{suffix}', 'wb') as fd:
                     async for chunk in r.content.iter_chunked(16144):
                         total_size += len(chunk)
-                        logger.info(f'{time() - start:0.2f}s, downloaded: {total_size / (1024 * 1024):0.0f}MB')
+                        if total_size // (1024 * 1024) != now_downloaded:
+                            now_downloaded = total_size // (1024 * 1024)
+                            logger.info(f'{time() - start:0.2f}s, downloaded: {total_size / (1024 * 1024):0.0f}MB')
                         fd.write(chunk)
     except Exception as e:
         await send_video.finish(f'Error occurred while downloading the video file url\n{e}')
