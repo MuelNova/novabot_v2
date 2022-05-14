@@ -1,4 +1,4 @@
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 from typing import Union, Dict, List
 
 from nonebot import on_command, get_driver
@@ -40,12 +40,14 @@ async def _(state: T_State, event: GroupMessageEvent, bot: Bot):
                                              group_id=event.group_id,
                                              file_id=r_file.get('file_id'),
                                              busid=r_file.get('busid'))
+    print(url)
     if not (f_url := url.get('url')):
         await send_video.finish('Error occurred while getting the video file url')
     await bot.send(event, 'Downloading...')
     try:
-        async with ClientSession() as session:
-            async with session.post(f_url) as r:
+        connector = TCPConnector(force_close=True, limit=50)
+        async with ClientSession(connector=connector) as session:
+            async with session.get(f_url) as r:
                 if r.status != 200:
                     raise ConnectionError(r.status)
                 if not config.data_path.exists():
