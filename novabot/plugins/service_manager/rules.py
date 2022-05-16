@@ -1,7 +1,5 @@
 from abc import abstractmethod
-from typing import Type
 
-from nonebot.internal.matcher import Matcher
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 
 

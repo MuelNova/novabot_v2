@@ -1,11 +1,10 @@
 import json
-
-from typing import Type, Dict, Any
 from pathlib import Path
+from typing import Type, Dict, Any
+
 from nonebot.internal.matcher import Matcher, MatcherMeta
 
-from .rules import GroupMessageRule
-from ...utils import _load_file, _save_file
+from ...utils import _load_file
 
 
 class Service:
@@ -32,5 +31,3 @@ class Service:
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
         ...  # To-Do: Save plugin config
-
-
