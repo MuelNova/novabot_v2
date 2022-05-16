@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Union, Dict, Any
+from typing import Union, Dict
 
 from nonebot import logger
 
@@ -9,14 +9,14 @@ def _load_file(path: Union[str, Path]) -> str:
     if isinstance(path, str):
         path = Path(path)
     if not path.exists():
-        return {}
+        return ""
     try:
         with open(path, encoding='UTF-8') as f:
             file = f.read()
             return file
     except Exception as e:
         logger.error(e)
-        return {}
+        return ""
 
 
 def _save_file(path: Union[str, Path], content: Union[str, Dict], make_dir: bool = True, **kwargs):
