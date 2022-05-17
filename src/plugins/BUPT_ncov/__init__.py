@@ -79,7 +79,7 @@ async def _(event: PrivateMessageEvent, username: str = ArgPlainText("username")
         gen_new_scheduler()
         await add_new_user.finish(msg)
     except ConnectionError as e:
-        await add_new_user.finish("[BUPT ncov Bot]" + str(e))
+        await add_new_user.finish(f"[BUPT ncov Bot]{str(e)}")
 
 
 @checkin.handle()
@@ -87,7 +87,7 @@ async def _(bot: Bot, event: PrivateMessageEvent):
     try:
         user = BUPTUser(event.user_id).get_or_create()
     except Exception as e:
-        await bot.send(event, "[BUPT ncov Bot]" + str(e))
+        await bot.send(event, f"[BUPT ncov Bot]{str(e)}")
         return False
     await check(bot, user, 0)
 
@@ -97,7 +97,7 @@ async def _(bot: Bot, event: PrivateMessageEvent):
     try:
         user = BUPTUser(event.user_id).get_or_create()
     except Exception as e:
-        await bot.send(event, "[BUPT ncov Bot]" + str(e))
+        await bot.send(event, f"[BUPT ncov Bot]{str(e)}")
         return False
     await check(bot, user, 1)
 
@@ -107,9 +107,9 @@ async def _(bot: Bot, event: PrivateMessageEvent):
     try:
         user = BUPTUser(event.user_id).get_or_create()
     except Exception as e:
-        await bot.send(event, "[BUPT ncov Bot]" + str(e))
+        await bot.send(event, f"[BUPT ncov Bot]{str(e)}")
         return False
-    user.db.is_stopped = False if user.db.is_stopped else True
+    user.db.is_stopped = not user.db.is_stopped
     user.save()
     msg = f"""User Status
                     Username: {user.db.username}
@@ -124,9 +124,9 @@ async def _(bot: Bot, event: PrivateMessageEvent):
     try:
         user = BUPTUser(event.user_id).get_or_create()
     except Exception as e:
-        await bot.send(event, "[BUPT ncov Bot]" + str(e))
+        await bot.send(event, f"[BUPT ncov Bot]{str(e)}")
         return False
-    user.db.is_xisu_stopped = False if user.db.is_xisu_stopped else True
+    user.db.is_xisu_stopped = not user.db.is_xisu_stopped
     user.save()
     msg = f"""User Status
                 Username: {user.db.username}
@@ -141,7 +141,7 @@ async def _(bot: Bot, event: PrivateMessageEvent):
     try:
         user = BUPTUser(event.user_id).get_or_create()
     except Exception as e:
-        await bot.send(event, "[BUPT ncov Bot]" + str(e))
+        await bot.send(event, f"[BUPT ncov Bot]{str(e)}")
         return False
     msg = f"""User Status
             Username: {user.db.username}
@@ -166,7 +166,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, time: str = ArgPlainText()):
     try:
         user = BUPTUser(event.user_id).get_or_create()
     except Exception as e:
-        await bot.send(event, "[BUPT ncov Bot]" + str(e))
+        await bot.send(event, f"[BUPT ncov Bot]{str(e)}")
         return False
     if len(time.split("|")) == 3:
         old_times = xisu_checkin_times
@@ -202,9 +202,13 @@ async def _(bot: Bot, event: PrivateMessageEvent, time: str = ArgPlainText()):
 
 def check_time_available(time_str: str) -> bool:
     if len(t := time_str.split(":")) == 2:
-        if t[0].isdigit() and (0 <= int(t[0]) < 24):
-            if t[1].isdigit() and (0 <= int(t[1]) < 60):
-                return True
+        if (
+            t[0].isdigit()
+            and (0 <= int(t[0]) < 24)
+            and t[1].isdigit()
+            and (0 <= int(t[1]) < 60)
+        ):
+            return True
     return False
 
 
@@ -216,11 +220,7 @@ async def check(bot: Bot, user: BUPTUser, type_: int = 0) -> bool:
                                "[BUPT ncov Bot]Your bot is not login!\nplease reset the username and password"))
         return False
     try:
-        if type_:
-            msg = user.xisu_ncov_checkin()
-        else:
-            msg = user.ncov_checkin()
-
+        msg = user.xisu_ncov_checkin() if type_ else user.ncov_checkin()
     except Exception as e:
         msg = str(e)
     await bot.call_api("send_msg",
@@ -230,33 +230,29 @@ async def check(bot: Bot, user: BUPTUser, type_: int = 0) -> bool:
 
 async def scheduler_checkin(time: str, type_: int = 0):
     # Delete useless schedulers
-    if not type_:
-        if time not in [BUPTUser(i).get_or_create().db.checkin_time for i in users]:
-            scheduler.remove_job("checkin" + time)
-            checkin_times.remove(time)
-            logger.info(scheduler.get_jobs())
-            return
-    else:
+    if type_:
         if time not in "|".join(BUPTUser(i).get_or_create().db.xisu_checkin_time for i in users):
-            scheduler.remove_job("xisu_checkin" + time)
+            scheduler.remove_job(f"xisu_checkin{time}")
             xisu_checkin_times.remove(time)
             logger.info(scheduler.get_jobs())
             return
 
-    if not type_:
-        for i in users:
-            user = BUPTUser(i).get_or_create()
+    elif time not in [BUPTUser(i).get_or_create().db.checkin_time for i in users]:
+        scheduler.remove_job(f"checkin{time}")
+        checkin_times.remove(time)
+        logger.info(scheduler.get_jobs())
+        return
+    for i in users:
+        user = BUPTUser(i).get_or_create()
 
-            if not user.db.is_stopped and time in user.db.checkin_time:
-                logger.info(f"Signing {i}")
-                await check(get_bot(), user, type_)
-
-    else:
-        for i in users:
-            user = BUPTUser(i).get_or_create()
+        if type_:
             if not user.db.is_xisu_stopped and time in user.db.xisu_checkin_time:
                 logger.info(f"Signing {i}")
                 await check(get_bot(), user, type_)
+
+        elif not user.db.is_stopped and time in user.db.checkin_time:
+            logger.info(f"Signing {i}")
+            await check(get_bot(), user, type_)
 
 
 @driver.on_bot_connect
@@ -268,7 +264,11 @@ async def _():
     for i in user.keys():
         users.add(i)
         new_user = BUPTUser(i)
-        if not new_user.get_or_create() and not (new_user.db.is_stopped or new_user.db.is_xisu_stopped):
+        if (
+            not new_user.get_or_create()
+            and not new_user.db.is_stopped
+            and not new_user.db.is_xisu_stopped
+        ):
             await bot.call_api("send_msg",
                                user_id=int(i),
                                message=MessageSegment.text(
@@ -281,21 +281,27 @@ async def _():
 
 def gen_new_scheduler():
     for each in checkin_times:
-        if ("checkin" + each) not in [i.id for i in scheduler.get_jobs()]:
-            scheduler.add_job(scheduler_checkin,
-                              "cron",
-                              hour=each.split(':')[0],
-                              minute=each.split(':')[1],
-                              second=0,
-                              id="checkin" + each,
-                              args=[each, 0])
+        if f"checkin{each}" not in [i.id for i in scheduler.get_jobs()]:
+            scheduler.add_job(
+                scheduler_checkin,
+                "cron",
+                hour=each.split(':')[0],
+                minute=each.split(':')[1],
+                second=0,
+                id=f"checkin{each}",
+                args=[each, 0],
+            )
+
     for each in xisu_checkin_times:
-        if ("xisu_checkin" + each) not in [i.id for i in scheduler.get_jobs()]:
-            scheduler.add_job(scheduler_checkin,
-                              "cron",
-                              hour=each.split(':')[0],
-                              minute=each.split(':')[1],
-                              second=1,
-                              id="xisu_checkin" + each,
-                              args=[each, 1])
+        if f"xisu_checkin{each}" not in [i.id for i in scheduler.get_jobs()]:
+            scheduler.add_job(
+                scheduler_checkin,
+                "cron",
+                hour=each.split(':')[0],
+                minute=each.split(':')[1],
+                second=1,
+                id=f"xisu_checkin{each}",
+                args=[each, 1],
+            )
+
     logger.info(scheduler.get_jobs())

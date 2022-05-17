@@ -8,19 +8,17 @@ class Handle:
     def ls(cls, args: Namespace) -> str:
         plugin_manager = PluginManager()
         if args.user and args.group:
-            message = plugin_manager.get_user_rauth_in_group(args)
+            return plugin_manager.get_user_rauth_in_group(args)
         elif args.group:
-            message = plugin_manager.get_rauth_in_group(args)
+            return plugin_manager.get_rauth_in_group(args)
         elif args.user:
-            message = plugin_manager.get_user_rauth(args)
+            return plugin_manager.get_user_rauth(args)
+        elif args.conv.get("group"):
+            args.group = str(args.conv["group"][0])
+            return plugin_manager.get_rauth_in_group(args)
         else:
-            if args.conv.get("group"):
-                args.group = str(args.conv["group"][0])
-                message = plugin_manager.get_rauth_in_group(args)
-            else:
-                args.user = str(args.conv["user"][0])
-                message = plugin_manager.get_user_rauth(args)
-        return message
+            args.user = str(args.conv["user"][0])
+            return plugin_manager.get_user_rauth(args)
 
     @classmethod
     def chmod(cls, args: Namespace) -> str:
@@ -42,26 +40,20 @@ class Handle:
         if (len(args.mode) == 2 and args.mode in ['+x', '^x']) or (len(args.mode) == 1 and args.mode in ["0", "1"]):
             mode = args.mode*3 if len(args.mode) == 1 else chmod_dict[args.mode]*3
         else:
-            mode = ""
-            for i in args.mode:
-                if i in ["0", "1"]:
-                    mode += i
-                else:
-                    mode += '1'
+            mode = "".join(i if i in ["0", "1"] else '1' for i in args.mode)
         if args.user or (not args.conv.get('group') and args.conv.get('user')):
             mode = mode[0]
+        msg = ""
         if not args.matcher:
-            msg = ""
             for plugin in args.plugin:
 
                 type_, data = plugin_manager.gen_data(mode, args.user, args.group)
                 msg += plugin_manager.update_plugin(plugin, data, type_) + "\n\n"
-            return msg
         else:
             plugin = args.plugin[0]
-            msg = ""
             for matcher in args.matcher:
                 type_, data = plugin_manager.gen_data(mode, args.user, args.group)
                 msg += plugin_manager.update_plugin(plugin, data, type_, is_matcher=True, matcher_name=matcher)
-            return msg
+
+        return msg
 

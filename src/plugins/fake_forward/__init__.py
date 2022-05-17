@@ -25,7 +25,11 @@ def get_json(uin: int,
              name: str,
              msgs: Union[List[MessageSegment], MessageSegment]) -> Dict:
     if isinstance(msgs, List):
-        return {"type": "node", "data": {"name": name, "uin": uin, "content": [msg for msg in msgs]}}
+        return {
+            "type": "node",
+            "data": {"name": name, "uin": uin, "content": list(msgs)},
+        }
+
     return {"type": "node", "data": {"name": name, "uin": uin, "content": msgs}}
 
 
@@ -60,11 +64,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             for msg in msgs[1:]:
                 if other_type_text in msg:
                     if msg == other_type_text:
-                        if other_type_msg:
-                            msg_list = [other_type_msg[0]]
-                            other_type_msg.pop(0)
-                        else:
+                        if not other_type_msg:
                             continue
+                        msg_list = [other_type_msg[0]]
+                        other_type_msg.pop(0)
                     else:
                         if other_type_msg:
                             other_msg = other_type_msg[0]
