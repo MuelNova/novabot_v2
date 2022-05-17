@@ -23,10 +23,11 @@ def _save_file(path: Union[str, Path], content: Union[str, Dict], make_dir: bool
     if isinstance(path, str):
         path = Path(path)
     try:
-        if not path.parent.exists() and make_dir:
-            path.parent.mkdir(parents=True)
-        else:
-            raise FileNotFoundError(f"Can't create the file at {path.parent} as `make_dir` is disabled.")
+        if not path.parent.exists():
+            if make_dir:
+                path.parent.mkdir(parents=True)
+            else:
+                raise FileNotFoundError(f"Can't create the file at {path.parent} as `make_dir` is disabled.")
         with open(path, encoding='UTF-8', mode='w') as f:
             if isinstance(content, Dict):
                 if not kwargs:
