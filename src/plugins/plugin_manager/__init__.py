@@ -88,13 +88,12 @@ def draw_args(bot: Bot, event: MessageEvent, args: Namespace) -> Namespace:
 def get_matcher_name(matcher: Matcher) -> str:
     matcher_name = '-'
     for checker in matcher.rule.checkers:
-        if isinstance(checker, Dependent):
-            if isinstance(checker.call, CommandRule) or isinstance(checker.call, ShellCommandRule):
-                cmds = [x[0] for x in checker.call.cmds]
-                cmds.sort()
-                matcher_name = cmds[0]
-                return matcher_name
-            else:
-                continue
+        if isinstance(checker, Dependent) and isinstance(
+            checker.call, (CommandRule, ShellCommandRule)
+        ):
+            cmds = [x[0] for x in checker.call.cmds]
+            cmds.sort()
+            matcher_name = cmds[0]
+            return matcher_name
     return matcher_name
 

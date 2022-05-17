@@ -32,7 +32,9 @@ arg:
 """)
 async def _(state: T_State,
             user: str = Arg('user')):
-    img = await get_tracker_data("https://apex.tracker.gg/apex/profile/%s/%s/overview" %
-                                 (state.get('platform', 'origin'), user))
+    img = await get_tracker_data(
+        f"https://apex.tracker.gg/apex/profile/{state.get('platform', 'origin')}/{user}/overview"
+    )
+
     await apex_stat.finish(MessageSegment.image(f'base64://{img}'))
 

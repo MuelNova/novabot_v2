@@ -9,9 +9,9 @@ async def compress(path: Union[str, Path], arg: Optional[Union[str, List[str]]] 
     if isinstance(path, str):
         path = Path(path)
     ff = FFmpeg(
-        inputs={str(path): None},
-        outputs={str(path)+"_compressed.mp4": arg}
+        inputs={str(path): None}, outputs={f"{str(path)}_compressed.mp4": arg}
     )
+
     await ff.run_async()
     return await ff.wait()
 

@@ -1,12 +1,12 @@
 BASIC_DOMAIN = 'app.bupt.edu.cn'
-BASIC_URL = 'https://' + BASIC_DOMAIN
-LOGIN_API = BASIC_URL + '/uc/wap/login/check'
-REPORT_PAGE = BASIC_URL + '/ncov/wap/default/index'
-REPORT_API = BASIC_URL + '/ncov/wap/default/save'
+BASIC_URL = f'https://{BASIC_DOMAIN}'
+LOGIN_API = f'{BASIC_URL}/uc/wap/login/check'
+REPORT_PAGE = f'{BASIC_URL}/ncov/wap/default/index'
+REPORT_API = f'{BASIC_URL}/ncov/wap/default/save'
 
-XISU_REPORT_PAGE = BASIC_URL + '/site/ncov/xisudailyup'
-XISU_HISTORY_DATA = BASIC_URL + '/xisuncov/wap/open-report/index'
-XISU_REPORT_API = BASIC_URL + '/xisuncov/wap/open-report/save'
+XISU_REPORT_PAGE = f'{BASIC_URL}/site/ncov/xisudailyup'
+XISU_HISTORY_DATA = f'{BASIC_URL}/xisuncov/wap/open-report/index'
+XISU_REPORT_API = f'{BASIC_URL}/xisuncov/wap/open-report/save'
 
 
 CRON_TIMEZONE = 'Asia/Shanghai'
@@ -78,4 +78,4 @@ HELP_MARKDOWN='''
 从网页上获取上一次成功签到的数据，处理后再次提交。
 晨午晚检地理位置信息采取与原签到功能相同的数据。
 因此，如果您改变了城市（如返回北京），请先使用 /pause 暂停自动签到，并 **【连续两天】** 手动签到成功后，再使用 /resume 恢复自动签到。
-'''
+HELP_MARKDOWN='''

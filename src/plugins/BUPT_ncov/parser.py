@@ -14,17 +14,18 @@ def report_parser(html: AnyStr) -> Dict:
     data = re.search(r"var def = ({.*});", script)
     old_data = re.search(r"oldInfo: ({.*}),", script)
     if not data and old_data:
-        raise ParserError(f"Failed to parse report info!\n"
-                          f"data: {data.group(1) if data else 'null'}"
-                          f"old_data: {old_data.group(1) if old_data else 'null'}")
-    data, old_data = json.loads(data.group(1)), json.loads(old_data.group(1))
+        raise ParserError(
+            f"Failed to parse report info!\ndata: {data[1] if data else 'null'}old_data: {old_data[1] if old_data else 'null'}"
+        )
+
+    data, old_data = json.loads(data[1]), json.loads(old_data[1])
     if len(old_data) < REASONABLE_LENGTH or len(data) < REASONABLE_LENGTH:
         raise ParserError(f'Error occurred when parsing report info!\nThere is too less data in it\n'
                           f"data: {json.dumps(data, indent=2)}"
                           f"old_data: {json.dumps(old_data, indent=2)}")
     for prop in UPDATE_NEEDED_PROPS:
         if not data.get(prop, None):
-            raise ParserError(f"Failed to get property %s!" % prop)
+            raise ParserError(f"Failed to get property {prop}!")
         old_data[prop] = data.get(prop)
     old_data.update(SANITIZE_PROPS)
 

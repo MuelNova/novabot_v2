@@ -84,11 +84,7 @@ async def _(state: T_State, event: GroupMessageEvent, bot: Bot, arc: Message = C
 @compress_video.handle()
 async def _(event: GroupMessageEvent, bot: Bot, arc: Message = CommandArg()):
     files = config.data_path.iterdir()
-    file = None
-    for f in files:
-        if f.name.replace(f.suffix, '') == 'temp':
-            file = f
-            break
+    file = next((f for f in files if f.name.replace(f.suffix, '') == 'temp'), None)
     if not file:
         await compress_video.finish("No video found!")
     await bot.send(event, 'Compressing...')
@@ -98,8 +94,11 @@ async def _(event: GroupMessageEvent, bot: Bot, arc: Message = CommandArg()):
         else:
             await compress(path=file)
         await bot.send(event, 'Compressed, now trying to send...')
-        print(str(file) + '_compressed.mp4')
-        await compress_video.finish(MessageSegment.video(file=Path(str(file) + '_compressed.mp4')))
+        print(f'{str(file)}_compressed.mp4')
+        await compress_video.finish(
+            MessageSegment.video(file=Path(f'{str(file)}_compressed.mp4'))
+        )
+
     except ActionFailed:
         await compress_video.finish("Error While Sending the video, the file could be too large to send\n"
                                     "You can try compress it")
