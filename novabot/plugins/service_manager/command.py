@@ -2,8 +2,8 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 
 from .data_source import GlobalVar as gV
-from .service import Service
 from .rule import is_able_in_group
+from .service import Service
 
 __all__ = [
     "get_service_list"

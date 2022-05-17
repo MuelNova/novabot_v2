@@ -23,6 +23,5 @@ class GroupMessageRule(ServiceRule):
 
 
 def is_able_in_group(service: "Service", event: GroupMessageEvent) -> bool:
-    if not service.enable_on_default:
-        return event.group_id in service.enable_group
-    return event.group_id not in service.disable_group
+    return event.group_id not in service.disable_group if service.enable_on_default \
+        else event.group_id in service.enable_group
