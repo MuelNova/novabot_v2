@@ -13,8 +13,8 @@
 
 _✨ 来自NovaBot二代目✨_
 
-<a href="./LICENSE">
-    <img src="https://img.shields.io/github/license/owner/nonebot-plugin-example.svg" alt="license">
+<a href="LICENSE">
+    <img src="https://img.shields.io/github/license/Nova-Noir/novabot_v2.svg" alt="license">
 </a>
 <img src="https://img.shields.io/badge/nonebot2-2.0.0b2-blue.svg" alt="nonebot2">
 <img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="python">
