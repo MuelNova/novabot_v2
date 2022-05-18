@@ -1,13 +1,14 @@
 import json
 from datetime import date
 from pathlib import Path
-from typing import Type, Dict, Any, Optional, Set, Union
+from typing import Type, Dict, Any, Optional, Set, Union, List, Callable
 
 from nonebot.internal.matcher import Matcher, MatcherMeta
+from nonebot.typing import T_Handler
 from nonebot.log import logger
 
 from .data_source import GlobalVar as gV
-from .rule import GroupRule, CDRule, LimitRule
+from .rule import GroupRule, cooldown, limitation
 from ...utils import _load_file, _save_file
 
 
@@ -26,7 +27,7 @@ class Service:
     cd_reply: Optional[str]
     limit_reply: Optional[str]
     cd_list: Optional[Dict[str, Dict[str, Union[float, int]]]]
-    cd_list: Optional[Dict[str, Union[Dict[str, Union[float, int]], str]]]
+    limit_list: Optional[Dict[str, Union[Dict[str, Union[float, int]], str]]]
 
     def __init__(self,
                  plugin_name: str,
@@ -62,7 +63,18 @@ class Service:
         if not isinstance(matcher, MatcherMeta):
             raise TypeError(f"matcher excepted yet {type(matcher)} found.")
         self.plugin_name = plugin_name
-        self.matcher = matcher
+
+        class service_matcher(matcher):
+            @classmethod
+            def handle(cls, parameterless: Optional[List[Any]] = None) -> Callable[[T_Handler], T_Handler]:
+                if parameterless is None:
+                    parameterless = []
+                if self.cd > 0:
+                    parameterless.append(cooldown(self, self.cd, self.cd_reply))
+                if self.limit > 0:
+                    parameterless.append(limitation(self, self.limit, self.limit_reply))
+                return super().handle(parameterless)
+        self.matcher = service_matcher
         config = self._load_config()
         # To-Do: Finish Permission Enum
         """
@@ -94,10 +106,10 @@ class Service:
             self.visible = True
 
         self.matcher.rule &= GroupRule(self)
-        if self.cd > 0:
+        """if self.cd > 0:
             self.matcher.rule &= CDRule(self, self.cd_reply)
         if self.limit > 0:
-            self.matcher.rule &= LimitRule(self, self.limit_reply)
+            self.matcher.rule &= LimitRule(self, self.limit_reply)"""
 
         gV.loaded_service[self.plugin_name] = self
         gV.service_bundle[bundle or '默认'].append(self)
@@ -176,3 +188,4 @@ class Service:
         group_limit_list.update({str(user_id): counts})
         self.limit_list[str(group_id)] = group_limit_list
         self._save_config()
+
