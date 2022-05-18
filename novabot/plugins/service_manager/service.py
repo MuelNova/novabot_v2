@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Type, Dict, Any, Optional, Set, Union, List, Callable
 
 from nonebot.internal.matcher import Matcher, MatcherMeta
-from nonebot.typing import T_Handler
 from nonebot.log import logger
+from nonebot.typing import T_Handler
 
 from .data_source import GlobalVar as gV
 from .rule import GroupRule, cooldown, limitation
@@ -74,6 +74,7 @@ class Service:
                 if self.limit > 0:
                     parameterless.append(limitation(self, self.limit, self.limit_reply))
                 return super().handle(parameterless)
+
         self.matcher = service_matcher
         config = self._load_config()
         # To-Do: Finish Permission Enum
@@ -188,4 +189,3 @@ class Service:
         group_limit_list.update({str(user_id): counts})
         self.limit_list[str(group_id)] = group_limit_list
         self._save_config()
-

@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Optional
 
 from nonebot.adapters.onebot.v11 import Event
-from nonebot.params import Depends
 from nonebot.matcher import Matcher
+from nonebot.params import Depends
 
 
 def cooldown(service: "Service",
