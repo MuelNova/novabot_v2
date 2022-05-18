@@ -12,8 +12,7 @@ def _load_file(path: Union[str, Path]) -> str:
         return ""
     try:
         with open(path, encoding='UTF-8') as f:
-            file = f.read()
-            return file
+            return f.read()
     except Exception as e:
         logger.error(e)
         return ""
