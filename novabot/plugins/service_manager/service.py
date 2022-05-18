@@ -1,10 +1,9 @@
 import json
-
 from pathlib import Path
 from typing import Type, Dict, Any, Optional, Set
 
-from nonebot.log import logger
 from nonebot.internal.matcher import Matcher, MatcherMeta
+from nonebot.log import logger
 
 from .data_source import GlobalVar as gV
 from .rule import GroupMessageRule
