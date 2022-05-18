@@ -1,8 +1,9 @@
 import json
 
 from pathlib import Path
-from typing import Type, Dict, Any, Optional
+from typing import Type, Dict, Any, Optional, Set
 
+from nonebot.log import logger
 from nonebot.internal.matcher import Matcher, MatcherMeta
 
 from .data_source import GlobalVar as gV
@@ -11,6 +12,16 @@ from ...utils import _load_file, _save_file
 
 
 class Service:
+    plugin_name: str
+    matcher: Type[Matcher]
+    use_priv: Optional[int]
+    manage_priv: Optional[int]
+    enable_on_default: Optional[bool]
+    visible: Optional[bool]
+    help: Optional[str]
+    enable_group: Set[int]
+    disable_group: Set[int]
+
     def __init__(self,
                  plugin_name: str,
                  matcher: Type[Matcher],
@@ -38,8 +49,13 @@ class Service:
         self.matcher = matcher
         config = self._load_config()
         # To-Do: Finish Permission Enum
+        """
+        In this version, We set use_priv in on_* function using arg 'permission'
+        We firstly set the manage_priv as '>=GROUP_ADMIN'
+        """
         self.use_priv = config.get('use_priv') or use_priv or 0
         self.manage_priv = config.get('manage_priv') or manage_priv or 0
+        # End To-Do
         self.enable_on_default = config.get('enable_on_default')
         if self.enable_on_default is None:
             self.enable_on_default = enable_on_default
@@ -81,17 +97,27 @@ class Service:
             path.parent.mkdir(parents=True)
         _save_file(path,
                    {
-                    "plugin_name": self.plugin_name,
-                    "use_priv": self.use_priv,
-                    "manage_priv": self.manage_priv,
-                    "enable_on_default": self.enable_on_default,
-                    "visible": self.visible,
-                    "enable_group": list(self.enable_group),
-                    "disable_group": list(self.disable_group)
-                    })
+                       "plugin_name": self.plugin_name,
+                       "use_priv": self.use_priv,
+                       "manage_priv": self.manage_priv,
+                       "enable_on_default": self.enable_on_default,
+                       "visible": self.visible,
+                       "enable_group": list(self.enable_group),
+                       "disable_group": list(self.disable_group)
+                   })
 
+    def set_enable(self, group_id: int):
+        self.enable_group.add(group_id)
+        self.disable_group.discard(group_id)
+        self._save_config()
+        logger.info(f'Service {self.plugin_name} is enabled at group {group_id}')
 
+    def set_disable(self, group_id: int):
+        self.disable_group.add(group_id)
+        self.enable_group.discard(group_id)
+        self._save_config()
+        logger.info(f'Service {self.plugin_name} is disabled at group {group_id}')
 
-
-
-
+    @staticmethod
+    def get_loaded_services() -> Dict[str, "Service"]:
+        return gV.loaded_service
