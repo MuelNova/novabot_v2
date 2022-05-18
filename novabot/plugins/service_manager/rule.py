@@ -2,10 +2,9 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional
 
+from nonebot.adapters.onebot.v11 import Event, Bot
 from nonebot.rule import Rule
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Event, Bot
-
 
 
 class ServiceRule:
@@ -67,7 +66,7 @@ class CDRule(OnlyRule):
                 if self.reply:
                     await bot.send(event, self.reply)
                 return False
-            self.service.set_cd(event.group_id, event.user_id, ts+self.service.cd)
+            self.service.set_cd(event.group_id, event.user_id, ts + self.service.cd)
         return True
 
     def __repr__(self):
@@ -91,7 +90,7 @@ class LimitRule(OnlyRule):
                 if self.reply:
                     await bot.send(event, self.reply)
                 return False
-            self.service.set_limit(event.group_id, event.user_id, count+1)
+            self.service.set_limit(event.group_id, event.user_id, count + 1)
         return True
 
     def __repr__(self):
