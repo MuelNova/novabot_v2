@@ -12,8 +12,8 @@ service(plugin_name, cmd, ...)
 """
 from nonebot.plugin import export
 
-from .service import Service
 from .command import *
+from .service import Service
 
 __all__ = []
 

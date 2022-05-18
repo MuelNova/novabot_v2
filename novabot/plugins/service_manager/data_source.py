@@ -1,5 +1,5 @@
-from typing import Dict, List
 from collections import defaultdict
+from typing import Dict, List
 
 
 class GlobalVar(dict):
