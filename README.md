@@ -1,5 +1,3 @@
-
-
 <div align="center">
   <a href="https://bot.novanoir.dev"><img src="https://github.com/A-kirami/nonebot-plugin-template/blob/resources/nbp_logo.png" width="180" height="180" alt="NoneBotPluginLogo"></a>
   <br>
@@ -8,7 +6,9 @@
 
 
 
+
 <div align="center">
+
 
 
 # novabot2
@@ -35,6 +35,7 @@ _✨ 来自NovaBot二代目✨_
 <details>
 <summary>从 github 安装</summary>
 打开命令行, 输入以下命令克隆此储存库
+
 
 
     git clone https://github.com/Nova-Noir/novabot_v2.git
@@ -71,20 +72,16 @@ _✨ 来自NovaBot二代目✨_
 对于普通的`matcher`:
 
 ```python
-from nonebot.plugin import require
-
-service = require("service_manager").Service
+from novabot.plugins.service_manager import Service
 
 cmd = on_*(...)
-service(plugin_name, cmd, ...)
+cmd = service("plugin_name", cmd, ...)
 ```
 
 一个可能的例子:
 
 ```python
-from nonebot.plugin import require
-
-service = require("service_manager").Service
+from novabot.plugins.service_manager import Service as service
 
 cmd = on_command("abc")
 cmd = service("abc", cmd, cd=20, cd_reply="HI!")
@@ -127,4 +124,3 @@ notice_test = service("notice_test", notice_test)
 |  **lssv**   | `服务列表` \| `功能列表`   | `show_all`     | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 列出服务列表, 参数可为任意值, 存在则将同时显示`visible=False`的服务 |
 | **enable**  | `启用` \| `打开` \| `开启` | `service_name` | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 启用`service_name`插件. 可使用空格(" ")分隔多个`service_name`, 可使用关键字`all`或`全部`开启所有服务 |
 | **disable** | `禁用` \| `关闭`           | `service_name` | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 禁用`service_name`插件. 可使用空格(" ")分隔多个`service_name`, 可使用关键字`all`或`全部`开启所有服务 |
-
