@@ -7,9 +7,7 @@
 </div>
 
 
-
 <div align="center">
-
 
 # novabot2
 
@@ -36,7 +34,6 @@ _✨ 来自NovaBot二代目✨_
 <summary>从 github 安装</summary>
 打开命令行, 输入以下命令克隆此储存库
 
-
     git clone https://github.com/Nova-Noir/novabot_v2.git
 
 正在更新...
@@ -53,9 +50,7 @@ _✨ 来自NovaBot二代目✨_
 | 配置项2 |  否  |   无   | 配置说明 |
 
 ## 🎉 使用
-
 ### Service_Manager
-
 [`plugins.service_manager`](novabot/plugins/service_manager)
 
 基础插件。提供整个Bot的插件管理系统。功能灵感来源于[HoshinoBot](https://github.com/Ice-Cirno/HoshinoBot)(~~用习惯了~~)
@@ -115,10 +110,8 @@ notice_test = service("notice_test", notice_test)
 | **limit_reply**       | `str`           | 是     | 插件日调用次数上限回复, 空为不回复                  | ""     |
 
 #### 指令表
-
 |    指令     | 别名                     | 参数           |              权限              | 需要@ | 范围 |                             说明                             |
 | :---------: | ------------------------ | -------------- | :----------------------------: | :---: | :--: | :----------------------------------------------------------: |
-|  **lssv**   | `服务列表` | `功能列表`  | `show_all`     | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 列出服务列表, 参数可为任意值, 存在则将同时显示`visible=False`的服务 |
-| **enable**  | `启用` | `打开` | `开启` | `service_name` | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 启用`service_name`插件. 可使用空格(" ")分隔多个`service_name`, 可使用关键字`all`或`全部`开启所有服务 |
-| **disable** | `禁用` | `关闭`          | `service_name` | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 禁用`service_name`插件. 可使用空格(" ")分隔多个`service_name`, 可使用关键字`all`或`全部`开启所有服务 |
-
+|  **lssv**   | `服务列表` \| `功能列表`  | `show_all`     | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 列出服务列表, 参数可为任意值, 存在则将同时显示`visible=False`的服务 |
+| **enable**  | `启用` \| `打开` \| `开启` | `service_name` | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 启用`service_name`插件. 可使用空格(" ")分隔多个`service_name`, 可使用关键字`all`或`全部`开启所有服务 |
+| **disable** | `禁用` \| `关闭`          | `service_name` | 群管理员 \| 群主 \| 超级管理员 |  否   | 群聊 | 禁用`service_name`插件. 可使用空格(" ")分隔多个`service_name`, 可使用关键字`all`或`全部`开启所有服务 |
