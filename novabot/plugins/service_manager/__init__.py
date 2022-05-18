@@ -2,20 +2,14 @@
 定义了一个Service类，用于对各种插件进行包装
 
 用法:
-from nonebot.plugin import require
+from novabot.plugins.service_manager import Service
 
-service = require("service_manager").Service
-
-cmd = on_command("some_command_here", ...)
-service(plugin_name, cmd, ...)
+foo = on_*(...)
+foo = Service("foo_plugin", foo, ...)
 
 """
-from nonebot.plugin import export
 
 from .command import *
 from .service import Service
 
-__all__ = []
-
-export = export()
-export.Service = Service
+__all__ = ["Service"]
