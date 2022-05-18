@@ -6,7 +6,7 @@ from nonebot.internal.matcher import Matcher, MatcherMeta
 from nonebot.log import logger
 
 from .data_source import GlobalVar as gV
-from .rule import GroupMessageRule
+from .rule import GroupRule
 from ...utils import _load_file, _save_file
 
 
@@ -69,7 +69,7 @@ class Service:
         self.enable_group = set(config.get('enable_group', []))
         self.disable_group = set(config.get('disable_group', []))
 
-        self.matcher.rule &= GroupMessageRule(self)
+        self.matcher.rule &= GroupRule(self)
 
         gV.loaded_service[self.plugin_name] = self
         gV.service_bundle[bundle or '默认'].append(self)
