@@ -1,8 +1,8 @@
 import json
 import re
+from typing import AnyStr, Dict
 
 from bs4 import BeautifulSoup
-from typing import AnyStr, Dict
 
 from .exception import ParserError
 from .model import REASONABLE_LENGTH, UPDATE_NEEDED_PROPS, SANITIZE_PROPS

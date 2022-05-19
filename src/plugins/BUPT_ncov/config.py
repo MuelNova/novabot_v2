@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Extra
 from pathlib import Path
+
+from pydantic import BaseModel, Extra
 
 
 class Config(BaseModel, extra=Extra.ignore):
@@ -8,5 +9,3 @@ class Config(BaseModel, extra=Extra.ignore):
     secret_path: Path = data_path / "secret"
     salt_path: Path = data_path / "salt"
     api_timeout: int = 20  # in seconds
-
-

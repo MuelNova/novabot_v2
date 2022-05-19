@@ -1,15 +1,15 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asyncio import get_running_loop
 from random import randint
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from nonebot import get_driver, get_bot, on_command, require
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, Message, Bot, MessageSegment
 from nonebot.log import logger
 from nonebot.params import CommandArg, ArgPlainText
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, Message, Bot, MessageSegment
+from nonebot.typing import T_State
 
-from .config import Config
 from .bupt_user import BUPTUser
+from .config import Config
 
 driver = get_driver()
 plugin_config = Config.parse_obj(get_driver().config)
@@ -203,10 +203,10 @@ async def _(bot: Bot, event: PrivateMessageEvent, time: str = ArgPlainText()):
 def check_time_available(time_str: str) -> bool:
     if len(t := time_str.split(":")) == 2:
         if (
-            t[0].isdigit()
-            and (0 <= int(t[0]) < 24)
-            and t[1].isdigit()
-            and (0 <= int(t[1]) < 60)
+                t[0].isdigit()
+                and (0 <= int(t[0]) < 24)
+                and t[1].isdigit()
+                and (0 <= int(t[1]) < 60)
         ):
             return True
     return False
@@ -267,9 +267,9 @@ async def _():
         users.add(i)
         new_user = BUPTUser(i)
         if (
-            not new_user.get_or_create()
-            and not new_user.db.is_stopped
-            and not new_user.db.is_xisu_stopped
+                not new_user.get_or_create()
+                and not new_user.db.is_stopped
+                and not new_user.db.is_xisu_stopped
         ):
             await bot.call_api("send_msg",
                                user_id=int(i),

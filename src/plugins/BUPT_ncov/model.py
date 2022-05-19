@@ -8,7 +8,6 @@ XISU_REPORT_PAGE = f'{BASIC_URL}/site/ncov/xisudailyup'
 XISU_HISTORY_DATA = f'{BASIC_URL}/xisuncov/wap/open-report/index'
 XISU_REPORT_API = f'{BASIC_URL}/xisuncov/wap/open-report/save'
 
-
 CRON_TIMEZONE = 'Asia/Shanghai'
 CHECKIN_ALL_CRON_HOUR = 0
 CHECKIN_ALL_CRON_MINUTE = 10
@@ -29,31 +28,31 @@ REASONABLE_LENGTH = 24
 
 UPDATE_NEEDED_PROPS = ('id', 'uid', 'date', 'created')
 SANITIZE_PROPS = {
-            'ismoved': 0,
-            'jhfjrq': '',
-            'jhfjjtgj': '',
-            'jhfjhbcc': '',
-            'sfxk': 0,
-            'xkqq': '',
-            'szgj': '',
-            'szcs': '',
-            # Moved info sanitize
-            'sfsfbh': 0,
-            'xjzd': '',
-            'bztcyy': '',
-            'zgfxdq': 0,
-            'mjry': 0,
-            'csmjry': 0,
-            # Misc info sanitize
-            'gwszdd': '',
-            'sfyqjzgc': '',
-        }
+    'ismoved': 0,
+    'jhfjrq': '',
+    'jhfjjtgj': '',
+    'jhfjhbcc': '',
+    'sfxk': 0,
+    'xkqq': '',
+    'szgj': '',
+    'szcs': '',
+    # Moved info sanitize
+    'sfsfbh': 0,
+    'xjzd': '',
+    'bztcyy': '',
+    'zgfxdq': 0,
+    'mjry': 0,
+    'csmjry': 0,
+    # Misc info sanitize
+    'gwszdd': '',
+    'sfyqjzgc': '',
+}
 
 CHECKIN_PROXY = {}  # example: {'http': 'socks5://user:pass@host:port', 'https': 'socks5://user:pass@host:port'}
 
 DISPLAY_TIMEZONE = 'Asia/Shanghai'
 
-HELP_MARKDOWN='''
+HELP_MARKDOWN = '''
 自动签到时间：每日0点10分
 自动晨午晚检时间：每日12点10分、18点10分
 请在使用本 bot 前，确保已经正确提交过一次上报。

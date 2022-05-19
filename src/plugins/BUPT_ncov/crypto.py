@@ -1,10 +1,10 @@
 import base64
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import PBKDF2
-
-from typing import Tuple
 from pathlib import Path
+from typing import Tuple
+
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Random import get_random_bytes
 
 
 def msg_encrypt(passwd: str, secret: bytes, iv: bytes):
@@ -46,6 +46,3 @@ def initialize(path: Path) -> bytes:
     with open(path, 'rb') as f:
         salt = f.read()
     return salt
-
-
-
