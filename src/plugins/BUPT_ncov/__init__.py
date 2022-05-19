@@ -1,12 +1,12 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from asyncio import get_running_loop
+from random import randint
 
 from nonebot import get_driver, get_bot, on_command, require
-
 from nonebot.typing import T_State
 from nonebot.log import logger
 from nonebot.params import CommandArg, ArgPlainText
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, Message, Bot, MessageSegment
-from pathlib import Path
 
 from .config import Config
 from .bupt_user import BUPTUser
@@ -248,11 +248,13 @@ async def scheduler_checkin(time: str, type_: int = 0):
         if type_:
             if not user.db.is_xisu_stopped and time in user.db.xisu_checkin_time:
                 logger.info(f"Signing {i}")
-                await check(get_bot(), user, type_)
+                loop = get_running_loop()
+                loop.call_later(randint(1, 100), check, get_bot(), user, type_)
 
         elif not user.db.is_stopped and time in user.db.checkin_time:
             logger.info(f"Signing {i}")
-            await check(get_bot(), user, type_)
+            loop = get_running_loop()
+            loop.call_later(randint(1, 100), check, get_bot(), user, type_)
 
 
 @driver.on_bot_connect

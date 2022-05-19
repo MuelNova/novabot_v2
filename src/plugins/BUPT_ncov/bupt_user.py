@@ -1,5 +1,3 @@
-import time
-
 from sqlitedict import SqliteDict
 from nonebot import get_driver
 from requests import Session
@@ -105,13 +103,15 @@ class BUPTUser(SqliteDict):
     _passwd: str
     db: DBUser
 
-    def __init__(self, qq: Union[str, int]):
+    def __init__(self, qq: Union[str, int], **kwargs):
         if isinstance(qq, int):
             qq = str(qq)
         super().__init__(plugin_config.database_path, autocommit=True)
         self.qq = qq
         self.is_login = False
         self.session = Session()
+        for k, v in kwargs:
+            setattr(self.session, k, v)
 
     def get_or_create(self,
                       username: str = None,
