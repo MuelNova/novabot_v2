@@ -8,9 +8,6 @@ from .data_source import GlobalVar as gV
 from .rule import is_able_in_group
 from .service import Service
 
-__all__ = [
-    "get_service_list"
-]
 
 get_service_list = on_command("lssv",
                               aliases={'服务列表', '功能列表'},
@@ -35,7 +32,7 @@ async def _(event: GroupMessageEvent, all_: Message = CommandArg()):
         for service in services:
             msg += ("    |" +
                     ("√" if is_able_in_group(service, event) else "×") +
-                    f"| {service.plugin_name}\n") if service.visible or all_ else ""
+                    f"| {service.service_name}\n") if service.visible or all_ else ""
     await get_service_list.finish(msg)
 
 

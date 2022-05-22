@@ -13,7 +13,7 @@ from ...utils import _load_file, _save_file
 
 
 class Service:
-    plugin_name: str
+    service_name: str
     matcher: Type[Matcher]
     use_priv: int
     manage_priv: int
@@ -30,11 +30,11 @@ class Service:
     limit_list: Optional[Dict[str, Union[Dict[str, Union[float, int]], str]]]
 
     def __init__(self,
-                 plugin_name: str,
+                 service_name: str,
                  matcher: Type[Matcher],
-                 use_priv=None,
-                 manage_priv=None,
-                 enable_on_default=None,
+                 use_priv:Optional[int] = None,
+                 manage_priv: Optional[int] = None,
+                 enable_on_default: Optional[bool] = None,
                  visible: Optional[bool] = None,
                  help_: Optional[str] = None,
                  bundle: Optional[str] = None,
@@ -45,7 +45,7 @@ class Service:
         """
         将一个matcher进行包装，成为可控制的Service对象
 
-        :param plugin_name: 插件名
+        :param service_name: 插件名
         :param matcher: 需要包装的matcher
         :param use_priv: 使用权限，默认值: 所有成员
         :param manage_priv: 管理权限，默认值：群管理
@@ -62,7 +62,7 @@ class Service:
 
         if not isinstance(matcher, MatcherMeta):
             raise TypeError(f"matcher excepted yet {type(matcher)} found.")
-        self.plugin_name = plugin_name
+        self.service_name = service_name
 
         class service_matcher(matcher):
             @classmethod
@@ -112,7 +112,7 @@ class Service:
         if self.limit > 0:
             self.matcher.rule &= LimitRule(self, self.limit_reply)"""
 
-        gV.loaded_service[self.plugin_name] = self
+        gV.loaded_service[self.service_name] = self
         gV.service_bundle[bundle or '默认'].append(self)
 
     def __repr__(self):
@@ -128,18 +128,18 @@ class Service:
         return getattr(self.matcher, item)
 
     def _load_config(self) -> Dict[str, Any]:
-        path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.plugin_name}.json"
+        path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.service_name}.json"
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
         return json.loads(_load_file(path) or "{}")
 
     def _save_config(self):
-        path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.plugin_name}.json"
+        path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.service_name}.json"
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
         _save_file(path,
                    {
-                       "plugin_name": self.plugin_name,
+                       "service_name": self.service_name,
                        "use_priv": self.use_priv,
                        "manage_priv": self.manage_priv,
                        "enable_on_default": self.enable_on_default,
@@ -158,16 +158,16 @@ class Service:
         self.enable_group.add(group_id)
         self.disable_group.discard(group_id)
         self._save_config()
-        logger.info(f'Service {self.plugin_name} is enabled at group {group_id}')
+        logger.info(f'Service {self.service_name} is enabled at group {group_id}')
 
     def set_disable(self, group_id: int):
         self.disable_group.add(group_id)
         self.enable_group.discard(group_id)
         self._save_config()
-        logger.info(f'Service {self.plugin_name} is disabled at group {group_id}')
+        logger.info(f'Service {self.service_name} is disabled at group {group_id}')
 
     @staticmethod
-    def get_loaded_services() -> Dict[str, "Service"]:
+    def get_loaded_services() -> Dict[str, Union["Service", "SchedulerService"]]:
         return gV.loaded_service
 
     def get_cd(self, group_id: int, user_id: int):

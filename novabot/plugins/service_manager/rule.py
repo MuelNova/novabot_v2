@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 
 from nonebot.adapters.onebot.v11 import Event
 from nonebot.matcher import Matcher
@@ -48,7 +48,7 @@ class ServiceRule:
         raise NotImplementedError
 
     def __repr__(self):
-        return f"<Rule of {self.service.plugin_name}>"
+        return f"<Rule of {self.service.service_name}>"
 
 
 class GroupRule(ServiceRule):
@@ -56,10 +56,10 @@ class GroupRule(ServiceRule):
         return is_able_in_group(self.service, event)
 
     def __repr__(self):
-        return f"<GroupRule of {self.service.plugin_name}>"
+        return f"<GroupRule of {self.service.service_name}>"
 
 
-def is_able_in_group(service: "Service", event: Event) -> bool:
+def is_able_in_group(service: Union["Service", "SchedulerService"], event: Union[Event, "SchedulerEvent"]) -> bool:
     if hasattr(event, 'group_id'):
         return event.group_id not in service.disable_group if service.enable_on_default \
             else event.group_id in service.enable_group

@@ -1,15 +1,20 @@
 """
-定义了一个Service类，用于对各种插件进行包装
+定义了一个Service类，封装了一个service_scheduler方法，用于对各种插件进行包装
 
 用法:
-from novabot.plugins.service_manager import Service
+from novabot.plugins.service_manager import Service, service_scheduler
 
 foo = on_*(...)
 foo = Service("foo_plugin", foo, ...)
 
-"""
 
+@service_scheduler("foo_scheduler", "cron", ...)
+async def _(bot: Bot, groups: List[int]):
+    ...
+
+"""
 from .command import *
 from .service import Service
+from .scheduler_service import scheduler as service_scheduler
 
-__all__ = ["Service"]
+__all__ = ["Service", "service_scheduler"]
