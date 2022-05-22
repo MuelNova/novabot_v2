@@ -7,7 +7,9 @@
 
 
 
+
 <div align="center">
+
 
 
 
@@ -29,16 +31,23 @@ _✨ 来自NovaBot二代目✨_
 
 因为一直用别人的BOT不好魔改所以就写了自己的BOT啦, 我是比较想叫它`Skadi Bot`嘛,但是想了想还是叫做`Nova Bot`啦
 
+- [x] 支持各种事件的群权限管理系统（包括定时事件及各类提示事件）
+- [ ] 易调用易修改的插件配置系统
+- [ ] ...
+
 
 ## 💿 安装
 
 <details>
 <summary>从 github 安装</summary>
-打开命令行, 输入以下命令克隆此储存库
+<p>
+    打开命令行, 输入以下命令克隆此储存库
+</p>
 
 
-
-    git clone https://github.com/Nova-Noir/novabot_v2.git
+```sh
+git clone https://github.com/Nova-Noir/novabot_v2.git
+```
 
 正在更新...
 
@@ -96,7 +105,34 @@ notice_test = on_notice()
 notice_test = service("notice_test", notice_test)
 ```
 
-~~对于`apscheduler`的定时任务:~~
+对于`apscheduler`的定时任务:
+
+```python
+from novabot.plugins.service_manager import service_scheduler
+
+@service_scheduler.scheduled_job("plugin_name", 'cron', ...)
+async def _(bot: Bot, groups: List[int]):
+    ...
+    
+```
+
+一个可能的例子:
+
+```python
+from typing import List
+
+from nonebot.adapters.onebot.v11 import Bot, MessageSegment
+from novabot.plugins.service_manager import service_scheduler
+
+
+@service_scheduler.scheduled_job("test_plugin", 'cron', id='test_plugin', second='0/30')
+async def _(bot: Bot, groups: List[int]):
+    for i in groups:
+        await bot.call_api('send_group_msg', group_id=i, message=MessageSegment.text("Test on group %s" % i))
+
+```
+
+
 
 
 
@@ -104,10 +140,10 @@ notice_test = service("notice_test", notice_test)
 
 | 参数                  | 类型            | 可省略 | 说明                                                | 默认值 |
 | --------------------- | --------------- | ------ | --------------------------------------------------- | ------ |
-| **plugin_name**       | `str`           | 否     | 插件名称                                            |        |
+| **service_name**      | `str`           | 否     | 插件名称                                            |        |
 | **matcher**           | `Type[Matcher]` | 否     | 所要包裹的`Matcher`实例                             |        |
 | **~~use_priv~~**      | `int`           | 是     | 插件使用权限, 未开发, 可使用`permission`代替        | 0      |
-| **manage_priv**       | `int`           | 是     | 插件管理权限, 未开发                                | 0      |
+| ~~**manage_priv**~~   | `int`           | 是     | 插件管理权限, 未开发                                | 0      |
 | **enable_on_default** | `bool`          | 是     | 是否默认启用                                        | True   |
 | **visible**           | `bool`          | 是     | 是否在`帮助` / `lssv`中可见                         | True   |
 | **~~help_~~**         | `str`           | 是     | 帮助文档                                            | None   |
@@ -116,6 +152,21 @@ notice_test = service("notice_test", notice_test)
 | **limit**             | `int`           | 是     | 插件日调用次数限制, 针对个人, 0为无限制, 单位为`次` | 0      |
 | **cd_reply**          | `str`           | 是     | 插件CD中回复, 空为不回复                            | ""     |
 | **limit_reply**       | `str`           | 是     | 插件日调用次数上限回复, 空为不回复                  | ""     |
+
+
+
+##### `SchedulerService` 类
+
+| 参数                  | 类型   | 可省略 | 说明                        | 默认值 |
+| --------------------- | ------ | ------ | --------------------------- | ------ |
+| **plugin_name**       | `str`  | 否     | 插件名称                    |        |
+| ~~**manage_priv**~~   | `int`  | 是     | 插件管理权限, 未开发        | 0      |
+| **enable_on_default** | `bool` | 是     | 是否默认启用                | True   |
+| **visible**           | `bool` | 是     | 是否在`帮助` / `lssv`中可见 | True   |
+| **~~help_~~**         | `str`  | 是     | 帮助文档                    | None   |
+| **bundle**            | `str`  | 是     | 插件分类                    | "默认" |
+
+
 
 #### 指令表
 
