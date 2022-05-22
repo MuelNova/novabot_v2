@@ -14,7 +14,7 @@ async def _(bot: Bot, groups: List[int]):
 
 """
 from .command import *
-from .service import Service
 from .scheduler_service import scheduler as service_scheduler
+from .service import Service
 
 __all__ = ["Service", "service_scheduler"]

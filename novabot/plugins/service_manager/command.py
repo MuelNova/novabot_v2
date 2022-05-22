@@ -8,7 +8,6 @@ from .data_source import GlobalVar as gV
 from .rule import is_able_in_group
 from .service import Service
 
-
 get_service_list = on_command("lssv",
                               aliases={'服务列表', '功能列表'},
                               priority=1,

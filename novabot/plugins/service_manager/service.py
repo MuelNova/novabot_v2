@@ -32,7 +32,7 @@ class Service:
     def __init__(self,
                  service_name: str,
                  matcher: Type[Matcher],
-                 use_priv:Optional[int] = None,
+                 use_priv: Optional[int] = None,
                  manage_priv: Optional[int] = None,
                  enable_on_default: Optional[bool] = None,
                  visible: Optional[bool] = None,

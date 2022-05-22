@@ -1,14 +1,14 @@
 import json
-from typing import Callable, TypeVar, Optional, Dict, Any, Union
 from pathlib import Path
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from typing import Callable, TypeVar, Optional, Dict, Any, Union
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from nonebot import get_driver, get_bot
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.log import logger
 
-from .rule import is_able_in_group
 from .data_source import GlobalVar as gV
+from .rule import is_able_in_group
 from ...utils import _load_file, _save_file
 
 T = TypeVar('T', bound=Callable)
@@ -113,7 +113,9 @@ def scheduler_service_decorator(scheduler_: AsyncIOScheduler) -> T:
                     kwargs.pop(k)
             scheduler_.add_job(SchedulerService(service_name, func, **service_args).call, *args, **kwargs)
             return func
+
         return inner
+
     return scheduled_job
 
 
