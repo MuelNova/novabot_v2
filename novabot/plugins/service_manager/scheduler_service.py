@@ -27,6 +27,7 @@ class SchedulerService:
                  service_name: str,
                  func: Callable,
                  help_: Optional[str] = None,
+                 manage_priv: Optional[int] = None,
                  bundle: Optional[str] = None,
                  visible: Optional[bool] = None,
                  enable_on_default: Optional[bool] = None,
@@ -36,6 +37,7 @@ class SchedulerService:
 
         config = self._load_config()
         self.help = help_
+        self.manage_priv = config.get('manage_priv') or manage_priv or 0
         self.enable_group = set(config.get('enable_group', []))
         self.disable_group = set(config.get('disable_group', []))
         self.enable_on_default = config.get('enable_on_default')
@@ -69,7 +71,8 @@ class SchedulerService:
             path.parent.mkdir(parents=True)
         _save_file(path,
                    {
-                       "plugin_name": self.service_name,
+                       "service_name": self.service_name,
+                       "manage_priv": self.manage_priv,
                        "enable_on_default": self.enable_on_default,
                        "visible": self.visible,
                        "enable_group": list(self.enable_group),
