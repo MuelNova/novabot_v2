@@ -78,6 +78,8 @@ git clone https://github.com/Nova-Noir/novabot_v2.git
 
 #### 插件调用方式
 
+##### matcher 类型
+
 对于普通的`matcher`:
 
 ```python
@@ -104,6 +106,8 @@ cmd2 = service("abee", cmd2, enable_on_default=False) # plugin_name: abee
 notice_test = on_notice()
 notice_test = service("notice_test", notice_test)
 ```
+
+##### apscheduler (定时任务) 类型
 
 对于`apscheduler`的定时任务:
 
@@ -134,7 +138,7 @@ async def _(bot: Bot, groups: List[int]):
 
 
 
-
+#### 插件数据类型
 
 ##### `Service` 类
 
