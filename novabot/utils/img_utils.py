@@ -1,9 +1,9 @@
+from io import BytesIO
 from pathlib import Path
 from random import choice
-
-from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
 from typing import Optional, Union, Any
+
+from PIL import ImageFont
 
 from ..config import RESOURCE_PATH
 
@@ -82,4 +82,3 @@ class ImageUtils:
         if not backgrounds:
             raise FileNotFoundError(f"No Background Found in '{path}/', please check the config!")
         return open(choice(backgrounds), 'rb').read()
-

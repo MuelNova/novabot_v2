@@ -1,4 +1,3 @@
-
 BLACK = -999
 DEFAULT = 0
 NORMAL = 1
