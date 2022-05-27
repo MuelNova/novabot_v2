@@ -7,7 +7,7 @@ from nonebot import get_driver, get_bot
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.log import logger
 
-from novabot.utils.utils import _load_file, _save_file
+from novabot.utils.utils import load_file, save_file
 from .data_source import GlobalVar as gV
 from .rule import is_able_in_group
 
@@ -63,14 +63,14 @@ class SchedulerService:
         path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.service_name}.json"
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
-        return json.loads(_load_file(path) or "{}")
+        return json.loads(load_file(path) or "{}")
 
     def _save_config(self):
         path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.service_name}.json"
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
-        _save_file(path,
-                   {
+        save_file(path,
+                  {
                        "service_name": self.service_name,
                        "manage_priv": self.manage_priv,
                        "enable_on_default": self.enable_on_default,

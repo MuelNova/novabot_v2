@@ -5,7 +5,7 @@ from typing import Union, Dict
 from nonebot import logger
 
 
-def _load_file(path: Union[str, Path]) -> str:
+def load_file(path: Union[str, Path]) -> str:
     if isinstance(path, str):
         path = Path(path)
     if not path.exists():
@@ -18,7 +18,7 @@ def _load_file(path: Union[str, Path]) -> str:
         return ""
 
 
-def _save_file(path: Union[str, Path], content: Union[str, Dict], make_dir: bool = True, **kwargs):
+def save_file(path: Union[str, Path], content: Union[str, Dict], make_dir: bool = True, **kwargs):
     if isinstance(path, str):
         path = Path(path)
     try:
