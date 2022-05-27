@@ -1,28 +1,28 @@
 from io import BytesIO
 from pathlib import Path
 from random import choice
-from typing import Optional, Union, Any
+from typing import Optional, Union, Any, Literal
 
-from PIL import ImageFont
+from PIL import ImageFont, Image, ImageFilter
 
-from ..config import RESOURCE_PATH
+from config import RESOURCE_PATH
 
 
 class ImageUtils:
     width: int
     height: int
-    background: Optional[bytes]
-    background_opacity: float
+    background: Optional[Image.Image]
+    background_GAUSEBLUR_radius: int
     background_width: int
     background_height: int
     font: ImageFont
-    image_mode: str
+    image_mode: Optional[Literal["1", "CMYK", "F", "HSV", "I", "L", "LAB", "P", "RGB", "RGBA", "RGBX", "YCbCr"]]
 
     def __init__(self,
                  width: Optional[int] = 400,
                  height: Optional[int] = 400,
                  background: Optional[Union[str, Path, BytesIO]] = None,
-                 background_opacity: Optional[float] = 0.7,
+                 background_GAUSEBLUR_radius: Optional[int] = 12,
                  background_width: Optional[int] = None,
                  background_height: Optional[int] = None,
                  font: Optional[Union[str, Path]] = None,
@@ -31,10 +31,11 @@ class ImageUtils:
                  **kwargs: Optional[Any]):
         """
 
+        :type background:
         :param width:
         :param height:
         :param background:
-        :param background_opacity:
+        :param background_GAUSEBLUR_radius:
         :param background_width:
         :param background_height:
         :param font:
@@ -48,30 +49,33 @@ class ImageUtils:
         self.image_mode = image_mode
 
         # Background
+        self.background_height = height if background_height is None else background_height
+        self.background_width = width if background_width is None else background_width
         if isinstance(background, str) and background.lower() == 'none':
-            self.background = None
+            self.background = Image.new('RGBA', (self.background_width, self.background_height), (255, 255, 255, 255))
         elif background is None:
             self.background = ImageUtils.get_random_background()
         elif isinstance(background, BytesIO):
-            self.background = background.getvalue()
+            self.background = Image.frombuffer(self.image_mode,
+                                               (self.background_width, self.background_height),
+                                               background.getvalue())
         else:
             if isinstance(background, str):
                 background = Path(background)
             if not background.exists():
                 raise FileNotFoundError("Can't find the specific background file.")
-            self.background = open(background, 'rb').read()
-
-        self.background_height = height if background_height is None else background_height
-        self.background_width = width if background_width is None else background_width
-        self.background_opacity = background_opacity
+            self.background = Image.open(background)
+        self.background = self.background.resize((self.background_width, self.background_height), Image.ANTIALIAS).\
+            filter(ImageFilter.GaussianBlur(radius=background_GAUSEBLUR_radius))
 
         # font
         if isinstance(font, Path):
             font = str(Path)
-        self.image_font = ImageFont.truetype(font, font_size)
+        if font:
+            self.image_font = ImageFont.truetype(font, font_size)
 
     @staticmethod
-    def get_random_background():
+    def get_random_background() -> Image:
         path = Path(RESOURCE_PATH) / 'background'
 
         if not path.is_absolute():
@@ -81,4 +85,4 @@ class ImageUtils:
         backgrounds = list(path.iterdir())
         if not backgrounds:
             raise FileNotFoundError(f"No Background Found in '{path}/', please check the config!")
-        return open(choice(backgrounds), 'rb').read()
+        return Image.open(choice(backgrounds))
