@@ -160,7 +160,7 @@ class BuildImage:
         return self
 
     def paste(
-        self, img: Union[IMG, "BuildImage"], pos: ImgPosType, alpha: bool = False
+        self, img: Union[IMG, "ABuildImage", "BuildImage"], pos: ImgPosType, alpha: bool = False
     ) -> "BuildImage":
         """
         粘贴图片
@@ -169,7 +169,7 @@ class BuildImage:
           * ``pos``: 粘贴位置
           * ``alpha``: 图片背景是否为透明
         """
-        if isinstance(img, BuildImage):
+        if isinstance(img, (BuildImage, ABuildImage)):
             img = img.image
         if alpha:
             img = img.convert("RGBA")
@@ -177,6 +177,11 @@ class BuildImage:
         else:
             self.image.paste(img, pos)
         return self
+
+    def paste_center(
+            self, img: Union[IMG, "ABuildImage", "BuildImage"], alpha: bool = False
+    ) -> "BuildImage":
+        return self.paste(img, (self.width // 2 - img.width // 2, self.height // 2 - img.height // 2), alpha)
 
     def draw_point(
         self, pos: DrawPosType, fill: Optional[ColorType] = None
@@ -267,7 +272,7 @@ class BuildImage:
         stroke_ratio: float = 0,
         stroke_fill: Optional[ColorType] = None,
         fontname: str = "",
-        fallback_fonts: List[str] = [],
+        fallback_fonts: List[str] = None,
     ) -> "BuildImage":
         """
         在图片上指定区域画文字
@@ -288,6 +293,8 @@ class BuildImage:
           * ``fallback_fonts``: 指定备选字体
         """
 
+        if fallback_fonts is None:
+            fallback_fonts = []
         left = xy[0]
         top = xy[1]
         width = xy[2] - xy[0]
@@ -349,6 +356,10 @@ class BuildImage:
         image.save(output, format="png")
         return output
 
+    def gauss(self, radius: float = 2) -> "BuildImage":
+        self.image = self.image.filter(ImageFilter.GaussianBlur(radius))
+        return self
+
 
 class ABuildImage(BuildImage):
     def __init__(self, image: Image.Image):
@@ -361,5 +372,44 @@ class ABuildImage(BuildImage):
             self.loop = loop
 
     # async caller of "BuildImage", can only take args.
-    async def call_func(self, func_name: str, *data):
+    async def call_func(self, func_name: str, *data) -> "ABuildImage":
         return await self.loop.run_in_executor(None, getattr(self, func_name), *data)
+
+    async def a_paste(
+        self, img: Union[IMG, "ABuildImage", "BuildImage"], pos: ImgPosType, alpha: bool = False
+    ) -> "ABuildImage":
+        return await self.call_func("paste", img, pos, alpha)
+
+    async def a_draw_text(
+        self,
+        xy: XYType,
+        text: str,
+        max_fontsize: int = 30,
+        min_fontsize: int = 12,
+        bold: bool = False,
+        fill: ColorType = "black",
+        spacing: int = 4,
+        halign: HAlignType = "center",
+        valign: VAlignType = "center",
+        lines_align: HAlignType = "left",
+        stroke_ratio: float = 0,
+        stroke_fill: Optional[ColorType] = None,
+        fontname: str = "",
+        fallback_fonts: List[str] = None,
+    ) -> "ABuildImage":
+        return await self.call_func("draw_text",
+                                    xy,
+                                    text,
+                                    max_fontsize,
+                                    min_fontsize,
+                                    bold,
+                                    fill,
+                                    spacing,
+                                    halign,
+                                    valign,
+                                    lines_align,
+                                    stroke_ratio,
+                                    stroke_fill,
+                                    fontname,
+                                    fallback_fonts
+                                    )

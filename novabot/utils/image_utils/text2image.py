@@ -1,6 +1,9 @@
+import re
+from functools import partial
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
-from typing import List, Optional, Iterator
+from PIL.ImageColor import colormap
+from typing import List, Optional, Iterator, Any
 
 from .types import *
 from .fonts import Font, get_proper_font, fallback_fonts_regular, fallback_fonts_bold
@@ -97,7 +100,7 @@ class Line:
     def wrap(self, width: float) -> Iterator["Line"]:
         last_idx = 0
         for idx in range(len(self.chars)):
-            if Line(self.chars[last_idx : idx + 1]).width > width:
+            if Line(self.chars[last_idx: idx + 1]).width > width:
                 yield Line(self.chars[last_idx:idx], self.align)
                 last_idx = idx
         yield Line(self.chars[last_idx:], self.align)
@@ -110,17 +113,17 @@ class Text2Image:
 
     @classmethod
     def from_text(
-            cls,
-            text: str,
-            fontsize: int,
-            bold: bool = False,
-            fill: ColorType = "black",
-            spacing: int = 4,
-            align: HAlignType = "left",
-            stroke_width: int = 0,
-            stroke_fill: Optional[ColorType] = None,
-            fontname: str = "",
-            fallback_fonts: List[str] = None
+        cls,
+        text: str,
+        fontsize: int,
+        bold: bool = False,
+        fill: ColorType = "black",
+        spacing: int = 4,
+        align: HAlignType = "left",
+        stroke_width: int = 0,
+        stroke_fill: Optional[ColorType] = None,
+        fontname: str = "",
+        fallback_fonts: List[str] = None,
     ) -> "Text2Image":
         """
         从文本构建 `Text2Image` 对象
@@ -136,7 +139,7 @@ class Text2Image:
           * ``fontname``: 指定首选字体
           * ``fallback_fonts``: 指定备选字体
         """
-        if fallback_fonts is None:
+        if not fallback_fonts:
             fallback_fonts = []
         lines: List[Line] = []
         chars: List[Char] = []
@@ -153,3 +156,205 @@ class Text2Image:
         if chars:
             lines.append(Line(chars, align))
         return cls(lines, spacing)
+
+    @classmethod
+    def from_bbcode_text(
+        cls,
+        text: str,
+        fontsize: int = 30,
+        fill: ColorType = "black",
+        spacing: int = 6,
+        align: HAlignType = "left",
+        fontname: str = "",
+        fallback_fonts: List[str] = None,
+    ) -> "Text2Image":
+        """
+        从含有 `BBCode` 的文本构建 `Text2Image` 对象
+        目前支持的 `BBCode` 标签：
+          * ``[align=left|right|center][/align]``: 文字对齐方式
+          * ``[color=#66CCFF|red|black][/color]``: 字体颜色
+          * ``[font=msyh.ttc][/font]``: 文字字体，需填写完整字体文件名
+          * ``[size=30][/size]``: 文字大小
+          * ``[b][/b]``: 文字加粗
+        :参数:
+          * ``text``: 文本
+          * ``fontsize``: 字体大小，默认为 30
+          * ``fill``: 文字颜色，默认为 `black`
+          * ``spacing``: 多行文字间距
+          * ``align``: 多行文字对齐方式，默认为靠左
+          * ``fontname``: 指定首选字体
+          * ``fallback_fonts``: 指定备选字体
+        """
+
+        if not fallback_fonts:
+            fallback_fonts = []
+
+        def split_text(
+            text_: str,
+            type_: str,
+            has_param: bool = True,
+            param_pattern: str = "",
+            default_param: Any = None,
+        ) -> Iterator[Tuple[Any, int, int, int, int]]:
+            def parse_tag(
+                text__: str, offset: int = 0
+            ) -> Iterator[Tuple[Any, int, int, int, int]]:
+                pattern = rf"=(?P<param>{param_pattern})" if has_param else ""
+                for block in re.finditer(
+                    rf"(?P<tag>\[{type_}{pattern}](?P<content>.*)\[/{type_}])",
+                    text__,
+                    flags=re.S,
+                ):
+                    yield from parse_tag(block.group("content"), offset + block.pos + block.start("content"),)
+
+                    yield (
+                        block.group("param") if has_param else True,
+                        offset + block.pos + block.start("tag"),
+                        offset + block.pos + block.start("content"),
+                        offset + block.pos + block.end("content"),
+                        offset + block.pos + block.end("tag"),
+                    )
+
+            for result in parse_tag(text_):
+                yield result
+            yield default_param if has_param else False, 0, 0, len(text_), len(text_)
+
+        split_align = partial(
+            split_text,
+            type="align",
+            has_param=True,
+            param_pattern=r"left|right|center",
+            default_param=align,
+        )
+
+        colors = "|".join(colormap.keys())
+        split_color = partial(
+            split_text,
+            type="color",
+            has_param=True,
+            param_pattern=rf"#[a-fA-F0-9]{6}|{colors}",
+            default_param=fill,
+        )
+
+        split_font = partial(
+            split_text,
+            type="font",
+            has_param=True,
+            param_pattern=r"\S+\.ttf|\S+\.ttc|\S+\.otf|\S+\.fnt",
+            default_param=fontname,
+        )
+
+        split_size = partial(
+            split_text,
+            type="size",
+            has_param=True,
+            param_pattern=r"\d+",
+            default_param=fontsize,
+        )
+
+        split_bold = partial(
+            split_text,
+            type="b",
+            has_param=False,
+        )
+
+        align_parts = list(split_align(text))
+        color_parts = list(split_color(text))
+        font_parts = list(split_font(text))
+        size_parts = list(split_size(text))
+        bold_parts = list(split_bold(text))
+
+        def get_param(
+            index_: int, parts: list[Tuple[Any, int, int, int, int]]
+        ) -> Optional[Any]:
+            for param, tag1_start, tag1_end, tag2_start, tag2_end in parts:
+                if tag1_start != tag1_end and tag1_start <= index_ < tag1_end:
+                    return None
+                if tag2_start != tag2_end and tag2_start <= index_ < tag2_end:
+                    return None
+                if tag1_end != tag2_start and tag1_end <= index_ < tag2_start:
+                    return param
+            return None
+
+        lines: List[Line] = []
+        chars: List[Char] = []
+        last_align = align
+        for index, char in enumerate(text):
+            char_align = get_param(index, align_parts)
+            if char_align is None:
+                continue
+            char_color = get_param(index, color_parts)
+            if char_color is None:
+                continue
+            char_font = get_param(index, font_parts)
+            if char_font is None:
+                continue
+            char_size = get_param(index, size_parts)
+            if char_size is None:
+                continue
+            char_bold = get_param(index, bold_parts)
+            if char_bold is None:
+                continue
+            if char == "\n":
+                lines.append(Line(chars, last_align))
+                chars = []
+                continue
+            font = get_proper_font(char, char_bold, char_font, fallback_fonts)
+            if not font:
+                font = (
+                    fallback_fonts_bold[0] if char_bold else fallback_fonts_regular[0]
+                )
+            if char_align != last_align:
+                lines.append(Line(chars, last_align))
+                last_align = char_align
+                chars = []
+            chars.append(Char(char, font, int(char_size), char_color))
+        if chars:
+            lines.append(Line(chars, last_align))
+
+        return cls(lines, spacing)
+
+    @property
+    def width(self) -> int:
+        return max(line.width for line in self.lines) if self.lines else 0
+
+    @property
+    def height(self) -> int:
+        return (
+            sum(line.ascent for line in self.lines)
+            + self.lines[-1].descent
+            + self.spacing * (len(self.lines) - 1)
+        ) if self.lines else 0
+
+    def wrap(self, width: float) -> "Text2Image":
+        new_lines: List[Line] = []
+        for line in self.lines:
+            new_lines.extend(line.wrap(width))
+        self.lines = new_lines
+        return self
+
+    def to_image(
+        self, bg_color: Optional[ColorType] = None, padding: SizeType = (0, 0)
+    ) -> IMG:
+        img = Image.new(
+            "RGBA",
+            (int(self.width + padding[0] * 2), int(self.height + padding[1] * 2)),
+            bg_color,  # type: ignore
+        )
+
+        top = padding[1]
+        for line in self.lines:
+            left = padding[0]  # "left"
+            if line.align == "center":
+                left += (self.width - line.width) / 2
+            elif line.align == "right":
+                left += self.width - line.width
+
+            x = left
+            for char in line.chars:
+                y = top + line.ascent - char.ascent
+                char.draw_on(img, (int(x), int(y)))
+                x += char.width
+            top += line.ascent + self.spacing
+
+        return img

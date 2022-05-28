@@ -116,7 +116,7 @@ class Service:
         gV.service_bundle[bundle or '默认'].append(self)
 
     def __repr__(self):
-        return f"<Service '{self.matcher.plugin_name}'," \
+        return f"<Service '{self.service_name}'," \
                f" use_priv={self.use_priv}," \
                f" manage_priv={self.manage_priv}," \
                f" enable_on_default={self.enable_on_default}," \

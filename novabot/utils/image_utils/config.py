@@ -35,4 +35,4 @@ class Config(BaseModel, extra=Extra.ignore):
         "seguisym.ttf",
     ]
 
-    font_path: str = "resources/fonts"
+    font_path: str = "novabot/resources/fonts"
