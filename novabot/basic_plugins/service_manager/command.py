@@ -5,6 +5,7 @@ from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 
 from .data_source import GlobalVar as gV
+from .data_source import gen_help_img
 from .rule import is_able_in_group
 from .service import Service
 
@@ -25,6 +26,7 @@ set_disable = on_command('disable',
 
 @get_service_list.handle()
 async def _(event: GroupMessageEvent, all_: Message = CommandArg()):
+    r = await gen_help_img(event, all_)
     msg = f"{event.group_id}的服务开启情况:\n"
     for name_, services in gV.service_bundle.items():
         msg += f"  {name_}:\n"
@@ -32,6 +34,7 @@ async def _(event: GroupMessageEvent, all_: Message = CommandArg()):
             msg += ("    |" +
                     ("√" if is_able_in_group(service, event) else "×") +
                     f"| {service.service_name}\n") if service.visible or all_ else ""
+    msg += r
     await get_service_list.finish(msg)
 
 
