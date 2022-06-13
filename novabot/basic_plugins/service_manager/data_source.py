@@ -62,14 +62,13 @@ async def gen_help_img(event: GroupMessageEvent, all_: bool = False) -> MessageS
     width = sum(map(lambda i: max(map(lambda x_: x_.width, i)), helps_)) + (n+1)*padding
     heights = [sum(map(lambda i: i.height, k)) for k in helps_]
     height = max(heights) + default_y + n*padding
-    print(width, height)
     size = max(width, height)
     img = ABuildImage.new((size, size), 'RGBA', (255, 255, 255, 200))
     if background := get_random_background():
         background = background.resize((img.width, img.height)).gauss(8)
         img = await img.call_func('paste_center', background, True)
     img = await img.a_draw_text((0, 0, size, size),
-                                "TestTestTest\nTest2Test2Test2",
+                                f"{event.group_id}的服务开启情况",
                                 halign='left',
                                 valign='top',
                                 spacing=10)

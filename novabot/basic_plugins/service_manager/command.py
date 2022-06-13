@@ -26,16 +26,8 @@ set_disable = on_command('disable',
 
 @get_service_list.handle()
 async def _(event: GroupMessageEvent, all_: Message = CommandArg()):
-    r = await gen_help_img(event, all_)
-    msg = f"{event.group_id}的服务开启情况:\n"
-    for name_, services in gV.service_bundle.items():
-        msg += f"  {name_}:\n"
-        for service in services:
-            msg += ("    |" +
-                    ("√" if is_able_in_group(service, event) else "×") +
-                    f"| {service.service_name}\n") if service.visible or all_ else ""
-    msg += r
-    await get_service_list.finish(msg)
+    r = await gen_help_img(event, bool(all_))
+    await get_service_list.finish(r)
 
 
 @set_enable.handle()
