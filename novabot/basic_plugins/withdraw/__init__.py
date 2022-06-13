@@ -10,8 +10,8 @@ from ...helpers import is_reply_my_msg, is_reply_event
 
 with_draw = on_command(".withdraw", aliases={"撤回", "撤"}, permission=GROUP)
 s_with_draw = on_command(".withdraw", aliases={"撤回", "撤"}, permission=SUPERUSER)
-with_draw = Service("回复撤回", with_draw)
-s_with_draw = Service("SU回复撤回", s_with_draw, visible=False)
+with_draw = Service("回复撤回", with_draw, bundle="基础插件")
+s_with_draw = Service("SU回复撤回", s_with_draw, visible=False, bundle="基础插件")
 
 
 @with_draw.handle([is_reply_my_msg()])
