@@ -202,9 +202,14 @@ class BuildImage:
         self.image = new_img
         return self
 
-    def filter(self, filter: Union[Filter, Type[Filter]]) -> "BuildImage":
+    def paste_center(
+            self, img: Union[IMG, "ABuildImage", "BuildImage"], alpha: bool = False
+    ) -> "BuildImage":
+        return self.paste(img, (self.width // 2 - img.width // 2, self.height // 2 - img.height // 2), alpha)
+
+    def filter(self, filter_: Union[Filter, Type[Filter]]) -> "BuildImage":
         """滤波"""
-        return BuildImage(self.image.filter(filter))
+        return BuildImage(self.image.filter(filter_))
 
     def transpose(self, method: TransposeType) -> "BuildImage":
         """变换"""
