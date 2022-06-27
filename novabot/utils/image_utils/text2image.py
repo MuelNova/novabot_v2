@@ -1,12 +1,12 @@
 import re
-from functools import partial
+from bbcode import Parser
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
 from PIL.ImageColor import colormap
-from typing import List, Optional, Iterator, Any
+from typing import List, Optional, Iterator
 
 from .types import *
-from .fonts import Font, get_proper_font, fallback_fonts_regular, fallback_fonts_bold
+from .fonts import Font, get_proper_font
 
 
 class Char:
@@ -14,8 +14,8 @@ class Char:
         self,
         char: str,
         font: Font,
-        fontsize: int,
-        fill: ColorType,
+        fontsize: int = 16,
+        fill: ColorType = "black",
         stroke_width: int = 0,
         stroke_fill: Optional[ColorType] = None,
     ):
@@ -27,6 +27,7 @@ class Char:
         self.stroke_fill = stroke_fill
 
         if self.font.valid_size:
+            self.stroke_width = 0
             self.pilfont = self.font.load_font(self.font.valid_size)
         else:
             self.pilfont = self.font.load_font(fontsize)
@@ -43,7 +44,7 @@ class Char:
             self.width *= ratio
             self.height *= ratio
 
-    def draw_on(self, img: IMG, pos: ImgPosType):
+    def draw_on(self, img: IMG, pos: PosTypeInt):
         if self.font.valid_size:
             ratio = self.font.valid_size / self.fontsize
             new_img = Image.new(
@@ -55,8 +56,6 @@ class Char:
                 self.char,
                 font=self.pilfont,
                 fill=self.fill,
-                stroke_width=self.stroke_width,
-                stroke_fill=self.stroke_fill,
                 embedded_color=True,
             )
             new_img = new_img.resize(
@@ -77,30 +76,33 @@ class Char:
 
 
 class Line:
-    def __init__(self, chars: List[Char], align: HAlignType = "left"):
+    def __init__(
+        self, chars: List[Char], align: HAlignType = "left", fontsize: int = 16
+    ):
         self.chars: List[Char] = chars
         self.align: HAlignType = align
+        self.fontsize = fontsize
 
     @property
     def width(self) -> int:
-        return sum(char.width for char in self.chars) if self.chars else 0
+        return ((sum(char.width - char.stroke_width * 2 for char in self.chars) + self.chars[0].stroke_width) + self.chars[-1].stroke_width) if self.chars else 0
 
     @property
     def height(self) -> int:
-        return max(char.height for char in self.chars) if self.chars else 0
+        return max(char.height for char in self.chars) if self.chars else Char("A", get_proper_font("A"), fontsize=self.fontsize).height
 
     @property
     def ascent(self) -> int:
-        return max(char.ascent for char in self.chars) if self.chars else 0
+        return max(char.ascent for char in self.chars) if self.chars else Char("A", get_proper_font("A"), fontsize=self.fontsize).ascent
 
     @property
     def descent(self) -> int:
-        return max(char.descent for char in self.chars) if self.chars else 0
+        return max(char.descent for char in self.chars) if self.chars else Char("A", get_proper_font("A"), fontsize=self.fontsize).descent
 
     def wrap(self, width: float) -> Iterator["Line"]:
         last_idx = 0
         for idx in range(len(self.chars)):
-            if Line(self.chars[last_idx: idx + 1]).width > width:
+            if Line(self.chars[last_idx : idx + 1]).width > width:
                 yield Line(self.chars[last_idx:idx], self.align)
                 last_idx = idx
         yield Line(self.chars[last_idx:], self.align)
@@ -116,21 +118,23 @@ class Text2Image:
         cls,
         text: str,
         fontsize: int,
-        bold: bool = False,
+        style: FontStyle = "normal",
+        weight: FontWeight = "normal",
         fill: ColorType = "black",
         spacing: int = 4,
         align: HAlignType = "left",
         stroke_width: int = 0,
         stroke_fill: Optional[ColorType] = None,
         fontname: str = "",
-        fallback_fonts: List[str] = None,
+        fallback_fonts: List[str] = [],
     ) -> "Text2Image":
         """
         从文本构建 `Text2Image` 对象
         :参数:
           * ``text``: 文本
           * ``fontsize``: 字体大小
-          * ``bold``: 是否加粗
+          * ``style``: 字体样式，默认为 "normal"
+          * ``weight``: 字体粗细，默认为 "normal"
           * ``fill``: 文字颜色
           * ``spacing``: 多行文字间距
           * ``align``: 多行文字对齐方式，默认为靠左
@@ -139,8 +143,6 @@ class Text2Image:
           * ``fontname``: 指定首选字体
           * ``fallback_fonts``: 指定备选字体
         """
-        if not fallback_fonts:
-            fallback_fonts = []
         lines: List[Line] = []
         chars: List[Char] = []
 
@@ -149,12 +151,10 @@ class Text2Image:
                 lines.append(Line(chars, align))
                 chars = []
                 continue
-            font = get_proper_font(char, bold, fontname, fallback_fonts)
-            if not font:
-                font = fallback_fonts_bold[0] if bold else fallback_fonts_regular[0]
+            font = get_proper_font(char, style, weight, fontname, fallback_fonts)
             chars.append(Char(char, font, fontsize, fill, stroke_width, stroke_fill))
         if chars:
-            lines.append(Line(chars, align))
+            lines.append(Line(chars, align, fontsize))
         return cls(lines, spacing)
 
     @classmethod
@@ -166,7 +166,7 @@ class Text2Image:
         spacing: int = 6,
         align: HAlignType = "left",
         fontname: str = "",
-        fallback_fonts: List[str] = None,
+        fallback_fonts: List[str] = [],
     ) -> "Text2Image":
         """
         从含有 `BBCode` 的文本构建 `Text2Image` 对象
@@ -185,132 +185,92 @@ class Text2Image:
           * ``fontname``: 指定首选字体
           * ``fallback_fonts``: 指定备选字体
         """
-
-        if not fallback_fonts:
-            fallback_fonts = []
-
-        def split_text(
-            text_: str,
-            type_: str,
-            has_param: bool = True,
-            param_pattern: str = "",
-            default_param: Any = None,
-        ) -> Iterator[Tuple[Any, int, int, int, int]]:
-            def parse_tag(
-                text__: str, offset: int = 0
-            ) -> Iterator[Tuple[Any, int, int, int, int]]:
-                pattern = rf"=(?P<param>{param_pattern})" if has_param else ""
-                for block in re.finditer(
-                    rf"(?P<tag>\[{type_}{pattern}](?P<content>.*)\[/{type_}])",
-                    text__,
-                    flags=re.S,
-                ):
-                    yield from parse_tag(block.group("content"), offset + block.pos + block.start("content"),)
-
-                    yield (
-                        block.group("param") if has_param else True,
-                        offset + block.pos + block.start("tag"),
-                        offset + block.pos + block.start("content"),
-                        offset + block.pos + block.end("content"),
-                        offset + block.pos + block.end("tag"),
-                    )
-
-            for result in parse_tag(text_):
-                yield result
-            yield default_param if has_param else False, 0, 0, len(text_), len(text_)
-
-        split_align = partial(
-            split_text,
-            type="align",
-            has_param=True,
-            param_pattern=r"left|right|center",
-            default_param=align,
-        )
-
-        colors = "|".join(colormap.keys())
-        split_color = partial(
-            split_text,
-            type="color",
-            has_param=True,
-            param_pattern=rf"#[a-fA-F0-9]{6}|{colors}",
-            default_param=fill,
-        )
-
-        split_font = partial(
-            split_text,
-            type="font",
-            has_param=True,
-            param_pattern=r"\S+\.ttf|\S+\.ttc|\S+\.otf|\S+\.fnt",
-            default_param=fontname,
-        )
-
-        split_size = partial(
-            split_text,
-            type="size",
-            has_param=True,
-            param_pattern=r"\d+",
-            default_param=fontsize,
-        )
-
-        split_bold = partial(
-            split_text,
-            type="b",
-            has_param=False,
-        )
-
-        align_parts = list(split_align(text))
-        color_parts = list(split_color(text))
-        font_parts = list(split_font(text))
-        size_parts = list(split_size(text))
-        bold_parts = list(split_bold(text))
-
-        def get_param(
-            index_: int, parts: list[Tuple[Any, int, int, int, int]]
-        ) -> Optional[Any]:
-            for param, tag1_start, tag1_end, tag2_start, tag2_end in parts:
-                if tag1_start != tag1_end and tag1_start <= index_ < tag1_end:
-                    return None
-                if tag2_start != tag2_end and tag2_start <= index_ < tag2_end:
-                    return None
-                if tag1_end != tag2_start and tag1_end <= index_ < tag2_start:
-                    return param
-            return None
-
         lines: List[Line] = []
         chars: List[Char] = []
-        last_align = align
-        for index, char in enumerate(text):
-            char_align = get_param(index, align_parts)
-            if char_align is None:
-                continue
-            char_color = get_param(index, color_parts)
-            if char_color is None:
-                continue
-            char_font = get_param(index, font_parts)
-            if char_font is None:
-                continue
-            char_size = get_param(index, size_parts)
-            if char_size is None:
-                continue
-            char_bold = get_param(index, bold_parts)
-            if char_bold is None:
-                continue
-            if char == "\n":
-                lines.append(Line(chars, last_align))
-                chars = []
-                continue
-            font = get_proper_font(char, char_bold, char_font, fallback_fonts)
-            if not font:
-                font = (
-                    fallback_fonts_bold[0] if char_bold else fallback_fonts_regular[0]
-                )
-            if char_align != last_align:
-                lines.append(Line(chars, last_align))
-                last_align = char_align
-                chars = []
-            chars.append(Char(char, font, int(char_size), char_color))
+
+        def new_line():
+            nonlocal lines
+            nonlocal chars
+            lines.append(Line(chars, last_align, fontsize))
+            chars = []
+
+        align_stack = []
+        color_stack = []
+        font_stack = []
+        size_stack = []
+        bold_stack = []
+        last_align: HAlignType = align
+
+        align_pattern = r"left|right|center"
+        colors = "|".join(colormap.keys())
+        color_pattern = rf"#[a-fA-F0-9]{{6}}|{colors}"
+        font_pattern = r"\S+\.ttf|\S+\.ttc|\S+\.otf|\S+\.fnt"
+        size_pattern = r"\d+"
+
+        parser = Parser()
+        parser.recognized_tags = {}
+        parser.add_formatter("align", None)
+        parser.add_formatter("color", None)
+        parser.add_formatter("font", None)
+        parser.add_formatter("size", None)
+        parser.add_formatter("b", None)
+        tokens = parser.tokenize(text)
+        for token_type, tag_name, tag_opts, token_text in tokens:
+            if token_type == 1:
+                if tag_name == "align":
+                    if re.fullmatch(align_pattern, tag_opts["align"]):
+                        align_stack.append(tag_opts["align"])
+                elif tag_name == "color":
+                    if re.fullmatch(color_pattern, tag_opts["color"]):
+                        color_stack.append(tag_opts["color"])
+                elif tag_name == "font":
+                    if re.fullmatch(font_pattern, tag_opts["font"]):
+                        font_stack.append(tag_opts["font"])
+                elif tag_name == "size":
+                    if re.fullmatch(size_pattern, tag_opts["size"]):
+                        size_stack.append(tag_opts["size"])
+                elif tag_name == "b":
+                    bold_stack.append(True)
+            elif token_type == 2:
+                if tag_name == "align":
+                    if align_stack:
+                        align_stack.pop()
+                elif tag_name == "color":
+                    if color_stack:
+                        color_stack.pop()
+                elif tag_name == "font":
+                    if font_stack:
+                        font_stack.pop()
+                elif tag_name == "size":
+                    if size_stack:
+                        size_stack.pop()
+                elif tag_name == "b":
+                    if bold_stack:
+                        bold_stack.pop()
+            elif token_type == 3:
+                new_line()
+            elif token_type == 4:
+                char_align = align_stack[-1] if align_stack else align
+                char_color = color_stack[-1] if color_stack else fill
+                char_font = font_stack[-1] if font_stack else fontname
+                char_size = size_stack[-1] if size_stack else fontsize
+                char_bold = bold_stack[-1] if bold_stack else False
+
+                if char_align != last_align:
+                    if chars:
+                        new_line()
+                    last_align = char_align
+                for char in token_text:
+                    font = get_proper_font(
+                        char,
+                        weight="bold" if char_bold else "normal",
+                        fontname=char_font,
+                        fallback_fonts=fallback_fonts,
+                    )
+                    chars.append(Char(char, font, int(char_size), char_color))
+
         if chars:
-            lines.append(Line(chars, last_align))
+            new_line()
 
         return cls(lines, spacing)
 
@@ -320,11 +280,7 @@ class Text2Image:
 
     @property
     def height(self) -> int:
-        return (
-            sum(line.ascent for line in self.lines)
-            + self.lines[-1].descent
-            + self.spacing * (len(self.lines) - 1)
-        ) if self.lines else 0
+        return (sum(line.ascent for line in self.lines) + self.lines[-1].descent) + self.spacing * (len(self.lines) - 1) if self.lines else 0
 
     def wrap(self, width: float) -> "Text2Image":
         new_lines: List[Line] = []
@@ -351,10 +307,33 @@ class Text2Image:
                 left += self.width - line.width
 
             x = left
+            if line.chars:
+                x += line.chars[0].stroke_width
             for char in line.chars:
                 y = top + line.ascent - char.ascent
                 char.draw_on(img, (int(x), int(y)))
-                x += char.width
+                x += char.width - char.stroke_width * 2
             top += line.ascent + self.spacing
 
         return img
+
+
+def text2image(
+    text: str,
+    bg_color: ColorType = "white",
+    padding: SizeType = (10, 10),
+    max_width: Optional[int] = None,
+    **kwargs,
+) -> IMG:
+    """
+    文字转图片，支持少量 `BBCode` 标签，具体见 `Text2Image` 类的 `from_bbcode_text` 函数
+    :参数:
+        * ``text``: 文本
+        * ``bg_color``: 图片背景颜色
+        * ``padding``: 图片边距
+        * ``max_width``: 图片最大宽度，不设置则不限宽度
+    """
+    text2img = Text2Image.from_bbcode_text(text, **kwargs)
+    if max_width:
+        text2img.wrap(max_width)
+    return text2img.to_image(bg_color, padding)

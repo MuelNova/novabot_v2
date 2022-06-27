@@ -21,6 +21,7 @@ class GlobalVar(dict):
 
 
 async def gen_help_img(event: GroupMessageEvent, all_: bool = False) -> MessageSegment:
+    # sourcery no-metrics
     bundles = GlobalVar.service_bundle
     if not bundles:
         return MessageSegment.text('   No service found!')
@@ -63,7 +64,7 @@ async def gen_help_img(event: GroupMessageEvent, all_: bool = False) -> MessageS
     heights = [sum(map(lambda i: i.height, k)) for k in helps_]
     height = max(heights) + default_y + n*padding
     size = max(width, height)
-    img = ABuildImage.new((size, size), 'RGBA', (255, 255, 255, 200))
+    img = ABuildImage.new('RGBA', (size, size),  (255, 255, 255, 200))
     if background := get_random_background():
         background = background.resize((img.width, img.height)).gauss(8)
         img = await img.call_func('paste_center', background, True)
@@ -80,8 +81,25 @@ async def gen_help_img(event: GroupMessageEvent, all_: bool = False) -> MessageS
             y += j.height + padding
         x += max(map(lambda x_: x_.width, i)) + padding
         y = default_y
-    b64 = f"base64://{base64.b64encode(img.save_png().getvalue()).decode()}"
-    return MessageSegment.image(b64)
+    return MessageSegment.image(f"base64://{base64.b64encode(img.save_png().getvalue()).decode()}")
+
+
+async def gen_servcice_help_img(event: GroupMessageEvent, service_name: str) -> MessageSegment:
+    if service_name not in GlobalVar.loaded_service:
+        return MessageSegment.text(f"找不到{service_name}的帮助啦...")
+    service = GlobalVar.loaded_service[service_name]
+    help_ = service.help or "用法是秘密噢"
+    txt = Text2Image.from_bbcode_text(help_).wrap(500).to_image((255, 255, 255, 200), (10, 5))
+    h = txt.height + 60
+    w = 600
+    img = ABuildImage.new("RGBA", (w, h))
+    img = await img.a_draw_text((10, 10, w-10, 50),
+                                service_name,
+                                style="oblique",
+                                halign="center",
+                                valign="center")
+    img = await img.a_paste(txt, (50, 50), True)
+    return MessageSegment.image(f"base64://{base64.b64encode(img.save_png().getvalue()).decode()}")
 
 
 def get_random_background() -> Optional[BuildImage]:

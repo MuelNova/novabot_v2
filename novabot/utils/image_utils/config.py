@@ -1,38 +1,25 @@
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 from pydantic import BaseModel, Extra
 
 
 class Config(BaseModel, extra=Extra.ignore):
-    pil_fallback_fonts_regular: List[str] = [
-        "tahoma.ttf",
-        "arial.ttf",
-        "segoeui.ttf",
-        "OpenSans-Regular.ttf",
-        "NotoSans-Regular.ttf",
-        "msyh.ttc",
-        "PingFang-SC-Regular.ttf",
-        "SourceHanSansSC-Regular.otf",
-        "NotoSansCJK-Regular.ttc",
-        "AppleColorEmoji.ttf",
-        "NotoColorEmoji.ttf",
-        "seguiemj.ttf",
-        "seguisym.ttf",
+    custom_font_path: Optional[Path] = None
+    default_fallback_fonts: List[str] = [
+        "Arial",
+        "Tahoma",
+        "Helvetica Neue",
+        "Segoe UI",
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "Microsoft YaHei",
+        "Source Han Sans SC",
+        "Noto Sans SC",
+        "Noto Sans CJK JP",
+        "WenQuanYi Micro Hei",
+        "Apple Color Emoji",
+        "Noto Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
     ]
-
-    pil_fallback_fonts_bold: List[str] = [
-        "tahoma.ttf",
-        "arialbd.ttf",
-        "segoeuib.ttf",
-        "OpenSans-Bold.ttf",
-        "NotoSans-Bold.ttf",
-        "msyhbd.ttc",
-        "PingFang-SC-Bold.ttf",
-        "SourceHanSansSC-Bold.otf",
-        "NotoSansCJK-Bold.ttc",
-        "AppleColorEmoji.ttf",
-        "NotoColorEmoji.ttf",
-        "seguiemj.ttf",
-        "seguisym.ttf",
-    ]
-
     font_path: str = "novabot/resources/fonts"

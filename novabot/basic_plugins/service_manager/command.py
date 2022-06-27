@@ -4,9 +4,7 @@ from nonebot.params import CommandArg, Arg
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 
-from .data_source import GlobalVar as gV
-from .data_source import gen_help_img
-from .rule import is_able_in_group
+from .data_source import gen_help_img, gen_servcice_help_img
 from .service import Service
 
 get_service_list = on_command("lssv",
@@ -25,8 +23,12 @@ set_disable = on_command('disable',
 
 
 @get_service_list.handle()
-async def _(event: GroupMessageEvent, all_: Message = CommandArg()):
-    r = await gen_help_img(event, bool(all_))
+async def _(event: GroupMessageEvent, service_name: Message = CommandArg()):
+    service_name = service_name.extract_plain_text()
+    if service_name in ['-a', '--all']:
+        r = await gen_help_img(event, bool(service_name))
+    r = await gen_servcice_help_img(event, service_name) if service_name else await gen_help_img(event, False)
+
     await get_service_list.finish(r)
 
 
