@@ -27,7 +27,8 @@ async def _(event: GroupMessageEvent, service_name: Message = CommandArg()):
     service_name = service_name.extract_plain_text()
     if service_name in ['-a', '--all']:
         r = await gen_help_img(event, bool(service_name))
-    r = await gen_servcice_help_img(event, service_name) if service_name else await gen_help_img(event, False)
+    else:
+        r = await gen_servcice_help_img(event, service_name) if service_name else await gen_help_img(event, False)
 
     await get_service_list.finish(r)
 
