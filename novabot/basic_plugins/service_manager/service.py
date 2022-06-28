@@ -82,27 +82,27 @@ class Service:
         In this version, We set use_priv in on_* function using arg 'permission'
         We firstly set the manage_priv as '>=GROUP_ADMIN'
         """
-        self.use_priv = config.get('use_priv') or use_priv or 0
-        self.manage_priv = config.get('manage_priv') or manage_priv or 0
+        self.use_priv = use_priv or config.get('use_priv') or 0
+        self.manage_priv = manage_priv or config.get('manage_priv') or 0
         # End To-Do
         self.help = help_
         self.enable_group = set(config.get('enable_group', []))
         self.disable_group = set(config.get('disable_group', []))
-        self.cd = config.get('cd') or cd or 0
-        self.limit = config.get('limit') or limit or 0
-        self.cd_reply = config.get('cd_reply') or cd_reply or ''
+        self.cd = cd or config.get('cd') or 0
+        self.limit = limit or config.get('limit') or 0
+        self.cd_reply = cd_reply or config.get('cd_reply') or ''
         self.cd_list = config.get('cd_list', {})
-        self.limit_reply = config.get('limit_reply') or limit_reply or ''
+        self.limit_reply = limit_reply or config.get('limit_reply') or ''
         self.limit_list = config.get('limit_list', {"date": str(date.today())})
 
-        self.enable_on_default = config.get('enable_on_default')
+        self.enable_on_default = enable_on_default
         if self.enable_on_default is None:
-            self.enable_on_default = enable_on_default
+            self.enable_on_default = config.get('enable_on_default')
         if self.enable_on_default is None:
             self.enable_on_default = True
-        self.visible = config.get('visible')
+        self.visible = visible
         if self.visible is None:
-            self.visible = visible
+            self.visible = config.get('visible')
         if self.visible is None:
             self.visible = True
 
