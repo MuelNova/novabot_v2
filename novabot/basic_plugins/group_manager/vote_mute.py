@@ -55,8 +55,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
         await vote_to_mute.send(f"哼哼哼，好好带上吧，这是{get_nickname()}的奖励!")
         user_mute = set()
     else:
-        await vote_to_mute.send(f"哦呀呀，已经有 {len(user_mute)} 个人想要给" + MessageSegment.at(usr_id) +
-                                f"带上口球啦，集齐 3 票的话{get_nickname()}就要过来啦OpO")
+        await vote_to_mute.send(MessageSegment.text(f"哦呀呀，已经有 {len(user_mute)} 个人想要给")
+                                + MessageSegment.at(usr_id)
+                                + MessageSegment.text(f"带上口球啦，集齐 3 票的话{get_nickname()}就要过来啦OnO"))
 
     mute_dict[str(usr_id)] = user_mute
     mute_list[str(event.group_id)] = mute_dict
