@@ -17,7 +17,12 @@ __help__ = """投票禁言啦!爱他就口他吧!
 """
 
 vote_to_mute = on_regex(r"(.*)口([他它她]+)(.*)", priority=5, block=True)
-vote_to_mute = Service("投票禁言", vote_to_mute, bundle="群管", help_=__help__, cd=900, cd_reply="口的太快啦！会坏掉的！")
+vote_to_mute = Service("投票禁言",
+                       vote_to_mute,
+                       bundle="群管",
+                       help_=__help__,
+                       cd=900,
+                       cd_reply="口的太快啦！会坏掉的！每次间隔需要15分钟呢")
 
 mute_list = {}
 
