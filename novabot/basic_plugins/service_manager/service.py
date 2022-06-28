@@ -135,8 +135,6 @@ class Service:
 
     def _save_config(self):
         path = Path.cwd() / "novabot" / "plugin_config" / "service_manager" / f"{self.service_name}.json"
-        if not path.parent.exists():
-            path.parent.mkdir(parents=True)
         save_file(path,
                   {
                        "service_name": self.service_name,

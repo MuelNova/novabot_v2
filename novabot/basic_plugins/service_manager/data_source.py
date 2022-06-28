@@ -84,7 +84,7 @@ async def gen_help_img(event: GroupMessageEvent, all_: bool = False) -> MessageS
     return MessageSegment.image(f"base64://{base64.b64encode(img.save_png().getvalue()).decode()}")
 
 
-async def gen_servcice_help_img(event: GroupMessageEvent, service_name: str) -> MessageSegment:
+async def gen_servcice_help_img(service_name: str) -> MessageSegment:
     if service_name not in GlobalVar.loaded_service:
         return MessageSegment.text(f"找不到{service_name}的帮助啦...")
     service = GlobalVar.loaded_service[service_name]

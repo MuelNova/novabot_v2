@@ -2,18 +2,25 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Union
 
-from nonebot.adapters.onebot.v11 import Event
+from nonebot import get_driver
+from nonebot.adapters.onebot.v11 import Event, Bot
 from nonebot.matcher import Matcher
 from nonebot.params import Depends
+
+from ...utils.utils import is_admin
+
+
+driver = get_driver()
 
 
 def cooldown(service: "Service",
              cool: float,
              prompt: Optional[str] = None):
-    async def dependency(matcher: Matcher, event: Event):
+    async def dependency(bot: Bot, matcher: Matcher, event: Event):
         if hasattr(event, 'group_id'):
             grp_id, user = event.group_id, event.user_id
-            if (cs := service.get_cd(grp_id, user)) > datetime.now().timestamp() and cs != 0:
+            no_check = await is_admin(user, grp_id, bot)
+            if (cs := service.get_cd(grp_id, user)) > datetime.now().timestamp() and cs != 0 and not no_check:
                 await matcher.finish(prompt)
             else:
                 service.set_cd(grp_id, user, datetime.now().timestamp() + cool)
@@ -25,10 +32,11 @@ def cooldown(service: "Service",
 def limitation(service: "Service",
                times: int,
                prompt: Optional[str] = None):
-    async def dependency(matcher: Matcher, event: Event):
+    async def dependency(bot: Bot, matcher: Matcher, event: Event):
         if hasattr(event, 'group_id'):
             grp_id, user = event.group_id, event.user_id
-            if (count := service.get_limit(grp_id, user)) >= times != 0:
+            no_check = await is_admin(user, grp_id, bot)
+            if (count := service.get_limit(grp_id, user)) >= times != 0 and not no_check:
                 await matcher.finish(prompt)
             else:
                 service.set_limit(grp_id, user, count + 1)
