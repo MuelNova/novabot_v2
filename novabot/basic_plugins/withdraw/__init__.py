@@ -1,6 +1,6 @@
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Bot
-from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.adapters.onebot.exception import ActionFailed
 from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.permission import SUPERUSER
 
