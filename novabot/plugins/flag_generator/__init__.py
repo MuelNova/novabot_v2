@@ -31,8 +31,7 @@ flag_generator = Service("Flag Generator", flag_generator, help_=__help__, bundl
 
 
 @flag_generator.handle()
-async def _(state: T_State, arg: Message = CommandArg()):
-    print(arg)
+async def _(state: T_State, arg=CommandArg()):
     if arg:
         state['flag'] = arg
 
@@ -41,5 +40,5 @@ async def _(state: T_State, arg: Message = CommandArg()):
 async def _(flag: Message = Arg('flag')):
     flag = str(flag).lower()
     flag = map(lambda x: random.choice(FLAG_DICT.get(x, [x])), list(flag))
-    print("".join(flag))
-    await flag_generator.finish("TSCTF-J{" + "".join(flag) + "}")
+    flag = "".join(flag)
+    await flag_generator.finish("TSCTF-J{" + flag + "}")
