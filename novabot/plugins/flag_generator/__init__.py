@@ -20,7 +20,7 @@ FLAG_DICT = {
     "i": ["i", "I", "1"],
     "o": ["o", "O", "0"],
     "s": ["s", "S", "$"],
-    " ": [" ", "~", "|", "_"]
+    " ": [" ", "~", "_"]
 }
 for i in string.ascii_lowercase:
     if not FLAG_DICT.get(i):
