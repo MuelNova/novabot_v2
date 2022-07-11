@@ -6,6 +6,7 @@ from typing import Type, Dict, Any, Optional, Set, Union, List, Callable
 from nonebot.internal.matcher import Matcher, MatcherMeta
 from nonebot.log import logger
 from nonebot.typing import T_Handler
+from nonebot.adapters import Message, MessageSegment, MessageTemplate
 
 from novabot.utils.utils import load_file, save_file
 from .data_source import GlobalVar as gV
@@ -187,3 +188,4 @@ class Service:
         group_limit_list.update({str(user_id): counts})
         self.limit_list[str(group_id)] = group_limit_list
         self._save_config()
+
