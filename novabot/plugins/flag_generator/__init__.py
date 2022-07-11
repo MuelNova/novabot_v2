@@ -3,9 +3,9 @@ import string
 
 from nonebot import on_command
 from nonebot.params import CommandArg, Arg, T_State
-from nonebot.adapters.onebot.v12 import Bot, MessageEvent, Message
+from nonebot.adapters.onebot.v11 import Message
 
-# from novabot.basic_plugins.service_manager import Service
+from novabot.basic_plugins.service_manager import Service
 
 __help__ = """为你的 flag 字符串增加变数
 用法:
@@ -27,7 +27,7 @@ for i in string.ascii_lowercase:
         FLAG_DICT[i] = [i, i.upper()]
 
 flag_generator = on_command("/flag", priority=2, block=True)
-# flag_generator = Service("Flag Generator", flag_generator, help_=__help__, bundle="Utils")
+flag_generator = Service("Flag Generator", flag_generator, help_=__help__, bundle="Utils")
 
 
 @flag_generator.handle()
