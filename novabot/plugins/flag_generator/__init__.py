@@ -38,7 +38,5 @@ async def _(state: T_State, arg=CommandArg()):
 
 @flag_generator.got("flag", prompt="What Flag?")
 async def _(flag: Message = Arg('flag')):
-    flag = str(flag).lower()
-    flag = map(lambda x: random.choice(FLAG_DICT.get(x, [x])), list(flag))
-    flag = "".join(flag)
-    await flag_generator.finish("TSCTF-J{" + flag + "}")
+    flag = "".join(map(lambda x: random.choice(FLAG_DICT.get(x, [x])), list(str(flag).lower())))
+    await flag_generator.finish(f"TSCTF-J{{{flag}}}")
