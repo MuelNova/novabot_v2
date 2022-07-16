@@ -13,7 +13,12 @@ arg:
 """
 
 apex_stat = on_command(".apex", aliases={'.APEX', '.Apex'})
-apex_stat = Service("Apex Tracker", apex_stat, help_=__help__, bundle="Apex", cd=60)
+apex_stat = Service("Apex Tracker",
+                    apex_stat,
+                    help_=__help__,
+                    bundle="Apex",
+                    cd=60,
+                    cd_reply="You can only use this command once every 60 seconds.")
 
 
 @apex_stat.handle()
