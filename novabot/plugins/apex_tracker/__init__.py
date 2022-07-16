@@ -18,7 +18,8 @@ apex_stat = Service("Apex Tracker",
                     help_=__help__,
                     bundle="Apex",
                     cd=60,
-                    cd_reply="You can only use this command once every 60 seconds.")
+                    cd_reply="You can only use this command once every 60 seconds.\n"
+                             "Please try again in %cool% seconds.")
 
 
 @apex_stat.handle()

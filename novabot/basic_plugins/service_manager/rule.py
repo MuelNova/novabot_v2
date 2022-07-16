@@ -21,7 +21,7 @@ def cooldown(service: "Service",
             grp_id, user = event.group_id, event.user_id
             no_check = await is_admin(user, grp_id, bot)
             if (cs := service.get_cd(grp_id, user)) > datetime.now().timestamp() and cs != 0 and not no_check:
-                await matcher.finish(prompt)
+                await matcher.finish(prompt.replace("%cool%", str(int(cool - (cs - datetime.now().timestamp())))))
             else:
                 service.set_cd(grp_id, user, datetime.now().timestamp() + cool)
         return
