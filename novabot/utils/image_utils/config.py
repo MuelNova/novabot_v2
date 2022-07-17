@@ -4,7 +4,7 @@ from pydantic import BaseModel, Extra
 
 
 class Config(BaseModel, extra=Extra.ignore):
-    custom_font_path: Optional[Path] = None
+    custom_font_path: Optional[Path] = Path("novabot/resources/fonts")
     default_fallback_fonts: List[str] = [
         "Arial",
         "Tahoma",
