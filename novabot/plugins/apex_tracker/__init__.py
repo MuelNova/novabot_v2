@@ -8,11 +8,14 @@ from .config import Config
 from novabot.basic_plugins.service_manager import Service
 
 
-__help__ = """ Apex Tracker
+__apex_tacker_help__ = """ Apex Tracker
 usage: .apex {user} {platform}
 arg:
     user: username, for steam user, it should be your origin username
     platform: Optional, default is 'origin', it should be Literal['origin', 'psn', 'xbl']
+"""
+__apex_pred_help__ = """ Apex Predator Tracker
+usage: .apexpred / .pred
 """
 
 Config = Config.parse_obj(get_driver().config)
@@ -20,7 +23,7 @@ Config = Config.parse_obj(get_driver().config)
 apex_stat = on_command(".apex", aliases={'.APEX', '.Apex'})
 apex_stat = Service("Apex Tracker",
                     apex_stat,
-                    help_=__help__,
+                    help_=__apex_tacker_help__,
                     bundle="Apex",
                     cd=60,
                     cd_reply="You can only use this command once every 60 seconds.\n"
@@ -29,7 +32,7 @@ apex_stat = Service("Apex Tracker",
 apex_pred = on_command(".pred", aliases={'.APEXPRED', '.apexpred', '.PRED'})
 apex_pred = Service("Apex Predator Tracker",
                     apex_pred,
-                    help_=__help__,
+                    help_=__apex_pred_help__,
                     bundle="Apex",
                     cd=60,
                     cd_reply="You can only use this command once every 60 seconds.\n"
